@@ -1,0 +1,39 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #272744;
+  color: #fbf5ef;
+}
+
+.header {
+  padding: 40px 60px;
+}
+
+.header ul {
+  display: flex;
+  list-style-type: none;
+}
+
+.header li {
+  margin-right: 20px;
+}
+
+.header a {
+  color: #fbf5ef;
+  text-decoration: none;
+}
+
+.draw-grid {
+  display: inline-grid;
+  grid-template-columns: repeat(8, 40px);
+  border: 1px solid #fbf5ef;
+}
+
+.draw-grid-cell {
+  width: 40px;
+  height: 40px;
+}
