@@ -37,3 +37,31 @@ body {
   width: 40px;
   height: 40px;
 }
+
+.draw-buttons {
+  display: inline-block;
+}
+
+.draw-buttons button {
+  background: none;
+  outline: none;
+  border: 1px solid #fbf5ef;
+  font-size: 20px;
+  color: #fbf5ef;
+  padding: 10px;
+}
+
+.draw-palette {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 40px);
+  border: 1px solid #fbf5ef;
+  cursor: pointer;
+}
+
+.color-button,
+.current-color {
+  width: 40px;
+  height: 40px;
+  outline: none;
+  border: none;
+}
