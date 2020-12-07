@@ -28,10 +28,19 @@ body {
   text-decoration: none;
 }
 
+.section {
+  display: none;
+}
+
+.section.section-active {
+  display: block;
+}
+
 .draw-grid {
   display: inline-grid;
   grid-template-columns: repeat(8, 40px);
   border: 1px solid #fbf5ef;
+  margin-right: 40px;
 }
 
 .draw-grid-cell {
@@ -43,20 +52,40 @@ body {
   display: inline-block;
 }
 
-.draw-buttons button {
+.btn {
   background: none;
   outline: none;
-  border: 1px solid #fbf5ef;
+  border: 1px solid #8b6d9c;
   font-size: 20px;
-  color: #fbf5ef;
+  color: #8b6d9c;
   padding: 10px;
+  cursor: pointer;
+}
+
+.btn.btn-active {
+  border: 1px solid #fbf5ef;
+  color: #fbf5ef;
+}
+
+.btn:hover {
+  border: 1px solid #fbf5ef;
+  background: #c69fa5;
+  color: #fbf5ef;
+}
+
+.tools-wrapper {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 20px;
+  justify-content: center;
 }
 
 .draw-palette {
   display: inline-grid;
-  grid-template-columns: repeat(2, 40px);
+  grid-template-columns: repeat(6, 40px);
   border: 1px solid #fbf5ef;
   cursor: pointer;
+  margin-right: 20px;
 }
 
 .color-button,
@@ -70,6 +99,17 @@ body {
 .current-color {
   display: inline-block;
   border: 1px solid #fbf5ef;
+  margin-right: 20px;
+}
+
+.sprite-edit-wrapper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.sprite-preview-wrapper {
+  display: inline-block;
 }
 
 .sprite-preview {

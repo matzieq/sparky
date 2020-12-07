@@ -9,12 +9,18 @@
   <body>
     <header class="header">
       <ul>
-        <li><a href="#">SPRITESHEET</a></li>
-        <li><a href="#">TILEMAP</a></li>
+        <li>
+          <button class="btn btn-active" data-activate="sprite-edit">
+            SPRITESHEET
+          </button>
+        </li>
+        <li>
+          <button class="btn" data-activate="tilemap-edit">TILEMAP</button>
+        </li>
       </ul>
     </header>
     <main class="app-content">
-      <section class="sprite-edit">
+      <section class="sprite-edit section section-active">
         <div class="sprite-edit-wrapper">
           <div class="draw-grid">
             <div class="draw-grid-cell"></div>
@@ -83,6 +89,11 @@
             <div class="draw-grid-cell"></div>
           </div>
 
+          <div class="sprite-preview-wrapper">
+            <canvas class="sprite-preview" width="320" height="320"></canvas>
+          </div>
+        </div>
+        <div class="tools-wrapper">
           <div class="draw-palette">
             <button class="color-button color-0"></button>
             <button class="color-button color-1"></button>
@@ -92,11 +103,8 @@
             <button class="color-button color-5"></button>
           </div>
           <div class="current-color"></div>
+          <button class="btn btn-active download-button">DOWNLOAD</button>
         </div>
-        <div class="sprite-preview-wrapper">
-          <canvas class="sprite-preview" width="320" height="320"></canvas>
-        </div>
-        <button class="download-button">DOWNOLAND</button>
       </section>
     </main>
     <script src="main.js"></script>

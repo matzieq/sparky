@@ -1,5 +1,13 @@
 import { DRAW, ERASE } from "./src/constants";
 import { palette } from "./src/data";
+import {
+  getMousePos,
+  updateSprite,
+  changeSelectedSprite,
+  download,
+} from "./src/utils";
+import SpriteEdit from "./src/components/SpriteEdit";
+
 const appDataState = {
   sprites: Array(64)
     .fill(0)
@@ -17,166 +25,115 @@ const appDataState = {
     ),
 };
 
-const spriteEditState = {
-  selectedImage: 0,
-  currentMode: DRAW,
-  isDrawing: false,
-  selectedColor: 5,
-};
+const spriteEdit = SpriteEdit(appDataState);
 
-const grid = document.querySelector(".draw-grid");
-const cells = document.querySelectorAll(".draw-grid-cell");
+// const spriteEditState = {
+//   selectedImage: 0,
+//   currentMode: DRAW,
+//   isDrawing: false,
+//   selectedColor: 5,
+// };
 
-const colorButtons = document.querySelectorAll(".color-button");
-const currentColor = document.querySelector(".current-color");
-const spritePreview = document.querySelector(".sprite-preview");
-const ctx = spritePreview.getContext("2d");
-const downloadButton = document.querySelector(".download-button");
-ctx.scale(5, 5);
+// const cells = document.querySelectorAll(".draw-grid-cell");
 
-window.addEventListener("mousedown", e => {
-  spriteEditState.isDrawing = true;
-  if (Array.from(cells).indexOf(e.target) > 0) {
-    enableDrawing(e.target);
-  }
-});
-window.addEventListener("mouseup", () => (spriteEditState.isDrawing = false));
+// const colorButtons = document.querySelectorAll(".color-button");
+// const currentColor = document.querySelector(".current-color");
+// const spritePreview = document.querySelector(".sprite-preview");
+// const spritePreviewCtx = spritePreview.getContext("2d");
+// const downloadButton = document.querySelector(".download-button");
+// spritePreviewCtx.scale(5, 5);
 
-cells.forEach(cell =>
-  cell.addEventListener("mouseover", () => enableDrawing(cell))
-);
+// document.addEventListener("mousedown", (e) => {
+//   spriteEditState.isDrawing = true;
+//   if (Array.from(cells).indexOf(e.target) > 0) {
+//     enableDrawing(e.target);
+//   }
+// });
+// document.addEventListener("mouseup", () => (spriteEditState.isDrawing = false));
 
-colorButtons.forEach((button, i) =>
-  button.addEventListener("click", e => {
-    spriteEditState.selectedColor = i;
-    currentColor.style.backgroundColor = palette[i];
-  })
-);
+// cells.forEach((cell) =>
+//   cell.addEventListener("mouseover", () => enableDrawing(cell))
+// );
 
-spritePreview.addEventListener("click", e => {
-  const mousePos = getMousePos(e);
-  const spriteIndex = mousePos.y * 8 + mousePos.x;
-  changeSelectedSprite(spriteIndex);
-});
+// colorButtons.forEach((button, i) =>
+//   button.addEventListener("click", (e) => {
+//     spriteEditState.selectedColor = i;
+//     currentColor.style.backgroundColor = palette[i];
+//   })
+// );
 
-downloadButton.addEventListener("click", () => {
-  download(
-    "data.json",
-    JSON.stringify({
-      sprites: appDataState.sprites.flat(2),
-      map: appDataState.tileMap.flat(2),
-    })
-  );
-});
+// spritePreview.addEventListener("click", (e) => {
+//   const mousePos = getMousePos(e, spritePreview);
+//   const spriteIndex = mousePos.y * 8 + mousePos.x;
+//   changeSelectedSprite(spriteIndex, spritePreviewCtx, appDataState);
+// });
 
-fillDrawGrid();
-fillPalette();
-changeSelectedSprite(0);
+// downloadButton.addEventListener("click", () => {
+//   download(
+//     "data.json",
+//     JSON.stringify({
+//       sprites: appDataState.sprites.flat(2),
+//       map: appDataState.tileMap.flat(2),
+//     })
+//   );
+// });
 
-function enableDrawing(cell) {
-  const {
-    isDrawing,
-    currentMode,
-    selectedColor,
-    selectedImage,
-  } = spriteEditState;
-  if (isDrawing) {
-    switch (currentMode) {
-      case DRAW:
-        // cell.style.backgroundColor = palette[selectedColor];
-        const cellNumber = Array.from(cells).indexOf(cell);
-        const x = cellNumber % 8;
-        const y = Math.floor(cellNumber / 8);
-        appDataState.sprites[selectedImage][y][x] = selectedColor;
+// fillDrawGrid();
+// fillPalette();
+// changeSelectedSprite(0, spritePreviewCtx, appDataState);
 
-        updateSprite(selectedImage);
-        updateDrawingSurface(selectedImage);
-        break;
-      case ERASE:
-        cell.style.backgroundColor = palette[5];
-        break;
-      default:
-        break;
-    }
-  }
-}
+// function enableDrawing(cell) {
+//   const {
+//     isDrawing,
+//     currentMode,
+//     selectedColor,
+//     selectedImage,
+//   } = spriteEditState;
+//   if (isDrawing) {
+//     switch (currentMode) {
+//       case DRAW:
+//         // cell.style.backgroundColor = palette[selectedColor];
+//         const cellNumber = Array.from(cells).indexOf(cell);
+//         const x = cellNumber % 8;
+//         const y = Math.floor(cellNumber / 8);
+//         appDataState.sprites[selectedImage][y][x] = selectedColor;
 
-function fillDrawGrid() {
-  const sprite = appDataState.sprites[spriteEditState.selectedImage];
+//         updateSprite(selectedImage, spritePreviewCtx, appDataState);
+//         updateDrawingSurface(selectedImage);
+//         break;
+//       case ERASE:
+//         cell.style.backgroundColor = palette[5];
+//         break;
+//       default:
+//         break;
+//     }
+//   }
+// }
 
-  let currentCell;
-  sprite.forEach(row =>
-    row.forEach(cell => {
-      cells.item(currentCell).style.backgroundColor = palette[cell];
-      currentCell++;
-    })
-  );
-}
+// function fillDrawGrid() {
+//   const sprite = appDataState.sprites[spriteEditState.selectedImage];
 
-function fillPalette() {
-  colorButtons.forEach((button, i) => {
-    button.style.backgroundColor = palette[i];
-  });
-}
+//   let currentCell;
+//   sprite.forEach((row) =>
+//     row.forEach((cell) => {
+//       cells.item(currentCell).style.backgroundColor = palette[cell];
+//       currentCell++;
+//     })
+//   );
+// }
 
-function updateSprite(spriteIndex) {
-  const sprite = appDataState.sprites[spriteIndex];
+// function fillPalette() {
+//   colorButtons.forEach((button, i) => {
+//     button.style.backgroundColor = palette[i];
+//   });
+// }
 
-  const spriteRow = Math.floor(spriteIndex / 8);
-  const spriteCol = spriteIndex % 8;
+// function updateDrawingSurface(spriteIndex) {
+//   const sprite = appDataState.sprites[spriteIndex];
 
-  sprite.forEach((row, rowIndex) =>
-    row.forEach((cell, cellIndex) => {
-      ctx.fillStyle = palette[cell];
-      ctx.fillRect(spriteCol * 8 + cellIndex, spriteRow * 8 + rowIndex, 1, 1);
-    })
-  );
-}
+//   const pixels = sprite.flat(2);
 
-function updateDrawingSurface(spriteIndex) {
-  const sprite = appDataState.sprites[spriteIndex];
-
-  const pixels = sprite.flat(2);
-
-  cells.forEach((cell, index) => {
-    cell.style.backgroundColor = palette[pixels[index]];
-  });
-}
-
-function changeSelectedSprite(newSprite) {
-  appDataState.sprites.forEach((_, index) => updateSprite(index));
-  spriteEditState.selectedImage = newSprite;
-
-  const spriteRow = Math.floor(newSprite / 8);
-  const spriteCol = newSprite % 8;
-
-  ctx.strokeStyle = palette[0];
-  ctx.lineWidth = 1;
-  ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
-  updateDrawingSurface(newSprite);
-}
-
-function getMousePos(e) {
-  const rect = spritePreview.getBoundingClientRect();
-
-  return {
-    x: Math.floor((e.clientX - rect.left) / 40),
-    y: Math.floor((e.clientY - rect.top) / 40),
-  };
-}
-
-function download(filename, text) {
-  const element = document.createElement("a");
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-  );
-  element.setAttribute("download", filename);
-
-  element.style.display = "none";
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
+//   cells.forEach((cell, index) => {
+//     cell.style.backgroundColor = palette[pixels[index]];
+//   });
+// }
