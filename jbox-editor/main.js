@@ -3,10 +3,17 @@ import { palette } from "./src/data";
 const appDataState = {
   sprites: Array(64)
     .fill(0)
-    .map(sprite =>
+    .map(() =>
       Array(8)
         .fill(0)
-        .map(row => Array(8).fill(palette[5]))
+        .map(() => Array(8).fill(5))
+    ),
+  tileMap: Array(64)
+    .fill(0)
+    .map(() =>
+      Array(16)
+        .fill(0)
+        .map(() => Array(16).fill(0))
     ),
 };
 
@@ -24,16 +31,10 @@ const colorButtons = document.querySelectorAll(".color-button");
 const currentColor = document.querySelector(".current-color");
 const spritePreview = document.querySelector(".sprite-preview");
 const ctx = spritePreview.getContext("2d");
-ctx.scale(4, 4);
-
-console.log(spritePreview, ctx);
-
-console.log(grid);
-
-console.log(appDataState);
+const downloadButton = document.querySelector(".download-button");
+ctx.scale(5, 5);
 
 window.addEventListener("mousedown", e => {
-  console.log(e.target);
   spriteEditState.isDrawing = true;
   if (Array.from(cells).indexOf(e.target) > 0) {
     enableDrawing(e.target);
@@ -52,8 +53,25 @@ colorButtons.forEach((button, i) =>
   })
 );
 
+spritePreview.addEventListener("click", e => {
+  const mousePos = getMousePos(e);
+  const spriteIndex = mousePos.y * 8 + mousePos.x;
+  changeSelectedSprite(spriteIndex);
+});
+
+downloadButton.addEventListener("click", () => {
+  download(
+    "data.json",
+    JSON.stringify({
+      sprites: appDataState.sprites.flat(2),
+      map: appDataState.tileMap.flat(2),
+    })
+  );
+});
+
 fillDrawGrid();
 fillPalette();
+changeSelectedSprite(0);
 
 function enableDrawing(cell) {
   const {
@@ -65,15 +83,14 @@ function enableDrawing(cell) {
   if (isDrawing) {
     switch (currentMode) {
       case DRAW:
-        cell.style.backgroundColor = palette[selectedColor];
-        var cellNumber = Array.from(cells).indexOf(cell);
-        var x = cellNumber % 8;
-        var y = Math.floor(cellNumber / 8);
-        appDataState.sprites[selectedImage][y][x] = palette[selectedColor];
-        console.log(appDataState.sprites[selectedImage][y][x]);
-        console.log(appDataState.sprites);
+        // cell.style.backgroundColor = palette[selectedColor];
+        const cellNumber = Array.from(cells).indexOf(cell);
+        const x = cellNumber % 8;
+        const y = Math.floor(cellNumber / 8);
+        appDataState.sprites[selectedImage][y][x] = selectedColor;
 
-        fillCanvas();
+        updateSprite(selectedImage);
+        updateDrawingSurface(selectedImage);
         break;
       case ERASE:
         cell.style.backgroundColor = palette[5];
@@ -90,14 +107,10 @@ function fillDrawGrid() {
   let currentCell;
   sprite.forEach(row =>
     row.forEach(cell => {
-      cells.item(currentCell).style.backgroundColor = cell;
+      cells.item(currentCell).style.backgroundColor = palette[cell];
       currentCell++;
     })
   );
-
-  // console.log(drawGrid);
-
-  // grid.innerHTML = drawGrid;
 }
 
 function fillPalette() {
@@ -106,22 +119,64 @@ function fillPalette() {
   });
 }
 
-function fillCanvas() {
-  const { selectedImage: spriteIndex } = spriteEditState;
+function updateSprite(spriteIndex) {
   const sprite = appDataState.sprites[spriteIndex];
 
   const spriteRow = Math.floor(spriteIndex / 8);
   const spriteCol = spriteIndex % 8;
 
-  ctx.fillStyle = palette[5];
-  ctx.fillRect(spriteRow, spriteCol, 8, 8);
-
-  // console.log(spriteRow, spriteCol);
   sprite.forEach((row, rowIndex) =>
     row.forEach((cell, cellIndex) => {
-      // console.log(cell);
-      ctx.fillStyle = cell;
+      ctx.fillStyle = palette[cell];
       ctx.fillRect(spriteCol * 8 + cellIndex, spriteRow * 8 + rowIndex, 1, 1);
     })
   );
+}
+
+function updateDrawingSurface(spriteIndex) {
+  const sprite = appDataState.sprites[spriteIndex];
+
+  const pixels = sprite.flat(2);
+
+  cells.forEach((cell, index) => {
+    cell.style.backgroundColor = palette[pixels[index]];
+  });
+}
+
+function changeSelectedSprite(newSprite) {
+  appDataState.sprites.forEach((_, index) => updateSprite(index));
+  spriteEditState.selectedImage = newSprite;
+
+  const spriteRow = Math.floor(newSprite / 8);
+  const spriteCol = newSprite % 8;
+
+  ctx.strokeStyle = palette[0];
+  ctx.lineWidth = 1;
+  ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
+  updateDrawingSurface(newSprite);
+}
+
+function getMousePos(e) {
+  const rect = spritePreview.getBoundingClientRect();
+
+  return {
+    x: Math.floor((e.clientX - rect.left) / 40),
+    y: Math.floor((e.clientY - rect.top) / 40),
+  };
+}
+
+function download(filename, text) {
+  const element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+  );
+  element.setAttribute("download", filename);
+
+  element.style.display = "none";
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 }
