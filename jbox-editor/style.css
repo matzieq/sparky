@@ -2,6 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 body {
@@ -64,4 +65,13 @@ body {
   height: 40px;
   outline: none;
   border: none;
+}
+
+.current-color {
+  display: inline-block;
+  border: 1px solid #fbf5ef;
+}
+
+.sprite-preview {
+  border: 1px solid #fbf5ef;
 }
