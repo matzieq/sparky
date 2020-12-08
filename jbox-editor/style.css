@@ -119,8 +119,15 @@ canvas {
 .tilemap-edit-wrapper {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .tilemap-drawing-wrapper {
+  margin-right: 40px;
+  margin-bottom: 40px;
+}
+
+.sprite-list-wrapper {
   margin-right: 40px;
 }

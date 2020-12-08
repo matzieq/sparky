@@ -72,6 +72,9 @@ const mapDrawingSurfaceCtx = mapDrawingSurface.getContext("2d");
 const mapSpritePreview = document.querySelector(".sprite-list");
 const mapSpritePreviewCtx = mapSpritePreview.getContext("2d");
 
+const mapPreview = document.querySelector(".tilemap-preview");
+const mapPreviewCtx = mapPreview.getContext("2d");
+
 /**
  * GET MOVING YOU INFERNAL MACHINE
  */
@@ -86,12 +89,13 @@ function init() {
   spritePreviewCtx.scale(5, 5);
   mapSpritePreviewCtx.scale(5, 5);
   mapDrawingSurfaceCtx.scale(4, 4);
+  mapPreviewCtx.scale(4, 4);
 
   attachControlListeners();
   attachSpriteEditListeners();
   attachTilemapListeners();
 
-  document.addEventListener("mousedown", (e) => {
+  document.addEventListener("mousedown", e => {
     appEditState.isDrawing = true;
     if (Array.from(cells).indexOf(e.target) > 0) {
       enableDrawing(e.target);
@@ -103,7 +107,10 @@ function init() {
     }
   });
 
-  document.addEventListener("mouseup", () => (appEditState.isDrawing = false));
+  document.addEventListener("mouseup", () => {
+    appEditState.isDrawing = false;
+    updateMapPreview();
+  });
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
 
@@ -131,34 +138,35 @@ function attachControlListeners() {
     initDrawingSurfaces();
   });
 
-  controlButtons.forEach((button) =>
+  controlButtons.forEach(button =>
     button.addEventListener("click", () => {
-      controlButtons.forEach((btn) => btn.classList.remove("btn-active"));
-      sections.forEach((section) => section.classList.remove("section-active"));
+      controlButtons.forEach(btn => btn.classList.remove("btn-active"));
+      sections.forEach(section => section.classList.remove("section-active"));
 
       const toggleMode = button.dataset.activate;
       button.classList.add("btn-active");
 
       Array.from(sections)
-        .find((section) => section.id === toggleMode)
+        .find(section => section.id === toggleMode)
         .classList.add("section-active");
+      initDrawingSurfaces();
     })
   );
 }
 
 function attachSpriteEditListeners() {
-  cells.forEach((cell) =>
+  cells.forEach(cell =>
     cell.addEventListener("mouseover", () => enableDrawing(cell))
   );
 
   colorButtons.forEach((button, i) =>
-    button.addEventListener("click", (e) => {
+    button.addEventListener("click", e => {
       appEditState.selectedColor = i;
       currentColor.style.backgroundColor = palette[i];
     })
   );
 
-  spritePreview.addEventListener("click", (e) => {
+  spritePreview.addEventListener("click", e => {
     const mousePos = getMousePos(e, spritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -173,7 +181,7 @@ function attachSpriteEditListeners() {
 }
 
 function attachTilemapListeners() {
-  mapSpritePreview.addEventListener("click", (e) => {
+  mapSpritePreview.addEventListener("click", e => {
     const mousePos = getMousePos(e, mapSpritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -186,7 +194,7 @@ function attachTilemapListeners() {
     });
   });
 
-  mapDrawingSurface.addEventListener("mousemove", (e) => {
+  mapDrawingSurface.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
   });
@@ -201,6 +209,8 @@ function initDrawingSurfaces() {
     spriteEditState: appEditState,
     updateDrawingSurface,
   });
+  updateMap();
+  updateMapPreview();
 }
 
 function enableDrawing(cell) {
@@ -213,7 +223,7 @@ function enableDrawing(cell) {
 
     updateSprite(selectedImage, spritePreviewCtx, appDataState);
     updateDrawingSurface(selectedImage);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appDataState));
+    saveData();
   }
 }
 
@@ -240,15 +250,19 @@ function drawOnMap({ x, y }) {
     const mapY = Math.floor(y / 32);
 
     if (mapX >= 0 && mapX < 16 && mapY >= 0 && mapY < 16) {
-      appDataState.tileMap[selectedScreen][mapY][mapX] = selectedImage;
-      updateMap();
-      console.log(appDataState);
+      const mapCell = appDataState.tileMap[selectedScreen][mapY][mapX];
+      if (mapCell != selectedImage) {
+        appDataState.tileMap[selectedScreen][mapY][mapX] = selectedImage;
+        const sprite = appDataState.sprites[selectedImage];
+        drawSprite(sprite, mapDrawingSurfaceCtx, mapX * 8, mapY * 8);
+        saveData();
+      }
     }
   }
 }
 
 function updateMap() {
-  const { isDrawing, selectedImage, selectedScreen } = appEditState;
+  const { selectedScreen } = appEditState;
   const mapChunk = appDataState.tileMap[selectedScreen];
 
   mapChunk.forEach((row, rowIndex) =>
@@ -260,4 +274,36 @@ function updateMap() {
       drawSprite(sprite, mapDrawingSurfaceCtx, x, y);
     })
   );
+}
+
+function updateMapPreview() {
+  const { tileMap, sprites } = appDataState;
+
+  tileMap.forEach((screen, screenIndex) =>
+    screen.forEach((row, rowIndex) =>
+      row.forEach((cell, cellIndex) => {
+        const screenX = screenIndex % 8;
+        const screenY = Math.floor(screenIndex / 8);
+        if (!isSpriteEmpty(sprites[cell])) {
+          mapPreviewCtx.fillStyle = palette[3];
+        } else {
+          mapPreviewCtx.fillStyle = palette[5];
+        }
+        mapPreviewCtx.fillRect(
+          screenX * 16 + cellIndex,
+          screenY * 16 + rowIndex,
+          1,
+          1
+        );
+      })
+    )
+  );
+}
+
+function saveData() {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appDataState));
+}
+
+function isSpriteEmpty(sprite) {
+  return sprite.flat().every(el => el === 5);
 }
