@@ -110,7 +110,7 @@ function init() {
 
   document.addEventListener("mouseup", () => {
     appEditState.isDrawing = false;
-    console.log(appEditState.mode);
+
     if (appEditState.mode === TILEMAP) {
       updateMapPreview();
     }
