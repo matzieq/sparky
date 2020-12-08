@@ -3,6 +3,7 @@ import {
   MAX_SPRITES,
   MAX_TILEMAP_SCREENS,
   SPRITE,
+  TILEMAP,
   TILEMAP_SIZE,
   TILE_SIZE,
 } from "./constants";
@@ -109,7 +110,10 @@ function init() {
 
   document.addEventListener("mouseup", () => {
     appEditState.isDrawing = false;
-    updateMapPreview();
+    console.log(appEditState.mode);
+    if (appEditState.mode === TILEMAP) {
+      updateMapPreview();
+    }
   });
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
@@ -150,6 +154,7 @@ function attachControlListeners() {
         .find(section => section.id === toggleMode)
         .classList.add("section-active");
       initDrawingSurfaces();
+      appEditState.mode = toggleMode;
     })
   );
 }
@@ -197,6 +202,14 @@ function attachTilemapListeners() {
   mapDrawingSurface.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
+  });
+
+  mapPreview.addEventListener("click", e => {
+    const mousePos = getMousePos(e, mapPreview);
+    const mapX = Math.floor(mousePos.x / (16 * 4));
+    const mapY = Math.floor(mousePos.y / (16 * 4));
+    const newScreenIndex = mapY * 8 + mapX;
+    changeSelectedScreen(newScreenIndex);
   });
 }
 
@@ -278,17 +291,16 @@ function updateMap() {
 
 function updateMapPreview() {
   const { tileMap, sprites } = appDataState;
+  const { selectedScreen } = appEditState;
 
   tileMap.forEach((screen, screenIndex) =>
     screen.forEach((row, rowIndex) =>
       row.forEach((cell, cellIndex) => {
         const screenX = screenIndex % 8;
         const screenY = Math.floor(screenIndex / 8);
-        if (!isSpriteEmpty(sprites[cell])) {
-          mapPreviewCtx.fillStyle = palette[3];
-        } else {
-          mapPreviewCtx.fillStyle = palette[5];
-        }
+
+        mapPreviewCtx.fillStyle = palette[getMapDotColor(sprites[cell])];
+
         mapPreviewCtx.fillRect(
           screenX * 16 + cellIndex,
           screenY * 16 + rowIndex,
@@ -298,12 +310,39 @@ function updateMapPreview() {
       })
     )
   );
+
+  const markerX = selectedScreen % 8;
+  const markerY = Math.floor(selectedScreen / 8);
+  mapPreviewCtx.strokeStyle = palette[0];
+  mapPreviewCtx.strokeRect(markerX * 16, markerY * 16, 16, 16);
 }
 
 function saveData() {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appDataState));
 }
 
-function isSpriteEmpty(sprite) {
-  return sprite.flat().every(el => el === 5);
+function getMapDotColor(sprite) {
+  const spriteDensity = sprite
+    .flat()
+    .map(cell => (cell === 5 ? 0 : 1))
+    .reduce((a, b) => a + b, 0);
+
+  let color = 5;
+  if (spriteDensity > 5 && spriteDensity < 20) {
+    color = 4;
+  } else if (spriteDensity >= 20 && spriteDensity < 36) {
+    color = 3;
+  } else if (spriteDensity >= 36 && spriteDensity < 50) {
+    color = 2;
+  } else if (spriteDensity >= 50) {
+    color = 1;
+  }
+  return color;
+}
+
+function changeSelectedScreen(newScreen) {
+  appEditState.selectedScreen = newScreen;
+
+  updateMapPreview();
+  updateMap();
 }
