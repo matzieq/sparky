@@ -5,31 +5,36 @@ export function updateSprite(spriteIndex, ctx, state) {
 
   const spriteRow = Math.floor(spriteIndex / 8);
   const spriteCol = spriteIndex % 8;
+  drawSprite(sprite, ctx, spriteCol * 8, spriteRow * 8);
+}
 
+export function drawSprite(sprite, ctx, x, y) {
   sprite.forEach((row, rowIndex) =>
     row.forEach((cell, cellIndex) => {
       ctx.fillStyle = palette[cell];
-      ctx.fillRect(spriteCol * 8 + cellIndex, spriteRow * 8 + rowIndex, 1, 1);
+      ctx.fillRect(x + cellIndex, y + rowIndex, 1, 1);
     })
   );
 }
 
 export function changeSelectedSprite({
   newSprite,
-  ctx,
+  contextList,
   state,
   spriteEditState,
   updateDrawingSurface,
 }) {
-  state.sprites.forEach((_, index) => updateSprite(index, ctx, state));
   spriteEditState.selectedImage = newSprite;
 
   const spriteRow = Math.floor(newSprite / 8);
   const spriteCol = newSprite % 8;
+  contextList.forEach((ctx) => {
+    state.sprites.forEach((_, index) => updateSprite(index, ctx, state));
 
-  ctx.strokeStyle = palette[0];
-  ctx.lineWidth = 1;
-  ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
+    ctx.strokeStyle = palette[0];
+    ctx.lineWidth = 1;
+    ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
+  });
   updateDrawingSurface(newSprite);
 }
 
