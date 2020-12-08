@@ -10,17 +10,19 @@
     <header class="header">
       <ul>
         <li>
-          <button class="btn btn-active" data-activate="sprite-edit">
+          <button class="btn btn-active control-button" data-activate="SPRITE">
             SPRITESHEET
           </button>
         </li>
         <li>
-          <button class="btn" data-activate="tilemap-edit">TILEMAP</button>
+          <button class="btn control-button" data-activate="TILEMAP">
+            TILEMAP
+          </button>
         </li>
       </ul>
     </header>
     <main class="app-content">
-      <section class="sprite-edit section section-active">
+      <section id="SPRITE" class="sprite-edit section section-active">
         <div class="sprite-edit-wrapper">
           <div class="draw-grid">
             <div class="draw-grid-cell"></div>
@@ -104,6 +106,16 @@
           </div>
           <div class="current-color"></div>
           <button class="btn btn-active download-button">DOWNLOAD</button>
+        </div>
+      </section>
+      <section id="TILEMAP" class="section tilemap-edit">
+        <div class="tilemap-edit-wrapper">
+          <div class="tilemap-drawing-wrapper">
+            <canvas class="sprite-list" width="512" height="512"></canvas>
+          </div>
+          <div class="sprite-list-wrapper">
+            <canvas class="sprite-list" width="320" height="320"></canvas>
+          </div>
         </div>
       </section>
     </main>

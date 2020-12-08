@@ -112,6 +112,15 @@ body {
   display: inline-block;
 }
 
-.sprite-preview {
+canvas {
   border: 1px solid #fbf5ef;
+}
+
+.tilemap-edit-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.tilemap-drawing-wrapper {
+  margin-right: 40px;
 }

@@ -14,7 +14,13 @@ export function updateSprite(spriteIndex, ctx, state) {
   );
 }
 
-export function changeSelectedSprite(newSprite, ctx, state) {
+export function changeSelectedSprite({
+  newSprite,
+  ctx,
+  state,
+  spriteEditState,
+  updateDrawingSurface,
+}) {
   state.sprites.forEach((_, index) => updateSprite(index, ctx, state));
   spriteEditState.selectedImage = newSprite;
 
@@ -31,8 +37,8 @@ export function getMousePos(e, canv) {
   const rect = canv.getBoundingClientRect();
 
   return {
-    x: Math.floor((e.clientX - rect.left) / 40),
-    y: Math.floor((e.clientY - rect.top) / 40),
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
   };
 }
 
