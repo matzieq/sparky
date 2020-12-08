@@ -96,7 +96,7 @@ function init() {
   attachSpriteEditListeners();
   attachTilemapListeners();
 
-  document.addEventListener("mousedown", e => {
+  document.addEventListener("mousedown", (e) => {
     appEditState.isDrawing = true;
     if (Array.from(cells).indexOf(e.target) > 0) {
       enableDrawing(e.target);
@@ -142,16 +142,16 @@ function attachControlListeners() {
     initDrawingSurfaces();
   });
 
-  controlButtons.forEach(button =>
+  controlButtons.forEach((button) =>
     button.addEventListener("click", () => {
-      controlButtons.forEach(btn => btn.classList.remove("btn-active"));
-      sections.forEach(section => section.classList.remove("section-active"));
+      controlButtons.forEach((btn) => btn.classList.remove("btn-active"));
+      sections.forEach((section) => section.classList.remove("section-active"));
 
       const toggleMode = button.dataset.activate;
       button.classList.add("btn-active");
 
       Array.from(sections)
-        .find(section => section.id === toggleMode)
+        .find((section) => section.id === toggleMode)
         .classList.add("section-active");
       initDrawingSurfaces();
       appEditState.mode = toggleMode;
@@ -160,18 +160,18 @@ function attachControlListeners() {
 }
 
 function attachSpriteEditListeners() {
-  cells.forEach(cell =>
+  cells.forEach((cell) =>
     cell.addEventListener("mouseover", () => enableDrawing(cell))
   );
 
   colorButtons.forEach((button, i) =>
-    button.addEventListener("click", e => {
+    button.addEventListener("click", (e) => {
       appEditState.selectedColor = i;
       currentColor.style.backgroundColor = palette[i];
     })
   );
 
-  spritePreview.addEventListener("click", e => {
+  spritePreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, spritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -186,7 +186,7 @@ function attachSpriteEditListeners() {
 }
 
 function attachTilemapListeners() {
-  mapSpritePreview.addEventListener("click", e => {
+  mapSpritePreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, mapSpritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -199,12 +199,12 @@ function attachTilemapListeners() {
     });
   });
 
-  mapDrawingSurface.addEventListener("mousemove", e => {
+  mapDrawingSurface.addEventListener("mousemove", (e) => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
   });
 
-  mapPreview.addEventListener("click", e => {
+  mapPreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, mapPreview);
     const mapX = Math.floor(mousePos.x / (16 * 4));
     const mapY = Math.floor(mousePos.y / (16 * 4));
@@ -324,7 +324,7 @@ function saveData() {
 function getMapDotColor(sprite) {
   const spriteDensity = sprite
     .flat()
-    .map(cell => (cell === 5 ? 0 : 1))
+    .map((cell) => (cell === 5 ? 0 : 1))
     .reduce((a, b) => a + b, 0);
 
   let color = 5;

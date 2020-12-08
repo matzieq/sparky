@@ -32,7 +32,9 @@ jb.init = function (config) {
   this._fitToScreen();
 
   window.addEventListener("resize", () => this._fitToScreen());
-  window.requestAnimationFrame(t => this._step(t));
+  window.addEventListener("keydown", (e) => this._onKeyPressed(e));
+  window.addEventListener("keyup", (e) => this._onKeyReleased(e));
+  window.requestAnimationFrame((t) => this._step(t));
 
   if (config.init) {
     config.init();
@@ -79,18 +81,17 @@ jb._lastFrame = 0;
 jb._step = function (timestamp) {
   var dt = timestamp - this._lastFrame;
   if (dt >= 1000 / 60) {
-    // console.log(dt);
     this._lastFrame = timestamp;
     this._update();
     this._draw();
   }
 
-  window.requestAnimationFrame(t => this._step(t));
+  window.requestAnimationFrame((t) => this._step(t));
 };
 
 jb.map = function (_x, _y) {
-  var x = Math.floor(_x || 0) * 8 - this._cam.x;
-  var y = Math.floor(_y || 0) * 8 - this._cam.y;
+  var x = Math.floor(_x || 0) * 8;
+  var y = Math.floor(_y || 0) * 8;
 
   for (var i = 0; i < 64; i++) {
     var screenX = i % 8;
@@ -104,7 +105,12 @@ jb.map = function (_x, _y) {
       var spriteX = x + screenX * 128 + cellMapX * 8;
       var spriteY = y + screenY * 128 + cellMapY * 8;
 
-      if (spriteX < -8 || spriteX > 128 || spriteY < -8 || spriteY > 128) {
+      if (
+        spriteX - this._cam.x < -8 ||
+        spriteX - this._cam.x > 128 ||
+        spriteY - this._cam.y < -8 ||
+        spriteY - this._cam.y > 128
+      ) {
         return;
       }
 
@@ -113,4 +119,201 @@ jb.map = function (_x, _y) {
   }
 };
 
-// jb.print = function(x,)
+jb._keys = {
+  left: {
+    pressed: false,
+    justPressed: false,
+  },
+  up: {
+    pressed: false,
+    justPressed: false,
+  },
+  right: {
+    pressed: false,
+    justPressed: false,
+  },
+  down: {
+    pressed: false,
+    justPressed: false,
+  },
+  a: {
+    pressed: false,
+    justPressed: false,
+  },
+  b: {
+    pressed: false,
+    justPressed: false,
+  },
+  start: {
+    pressed: false,
+    justPressed: false,
+  },
+  select: {
+    pressed: false,
+    justPressed: false,
+  },
+};
+
+jb._resetKeys = function () {
+  for (key in this._keys) {
+    this._keys[key].justPressed = false;
+  }
+};
+
+jb._onKeyPressed = function (e) {
+  switch (e.key) {
+    case "ArrowUp":
+      this._keys.up.pressed = true;
+      this._keys.up.justPressed = true;
+      break;
+    case "ArrowDown":
+      this._keys.down.pressed = true;
+      this._keys.down.justPressed = true;
+      break;
+    case "ArrowLeft":
+      this._keys.left.pressed = true;
+      this._keys.left.justPressed = true;
+      break;
+    case "ArrowRight":
+      this._keys.right.pressed = true;
+      this._keys.right.justPressed = true;
+      break;
+    case "z":
+      this._keys.a.pressed = true;
+      this._keys.a.justPressed = true;
+      break;
+    case "c":
+      this._keys.a.pressed = true;
+      this._keys.a.justPressed = true;
+      break;
+    case "x":
+      this._keys.b.pressed = true;
+      this._keys.b.justPressed = true;
+      break;
+    case "Escape":
+      this._keys.start.pressed = true;
+      this._keys.start.justPressed = true;
+      break;
+    case "Tab":
+      this._keys.select.pressed = true;
+      this._keys.select.justPressed = true;
+      break;
+    default:
+      break;
+  }
+};
+jb._onKeyReleased = function (e) {
+  switch (e.key) {
+    case "ArrowUp":
+      this._keys.up.pressed = false;
+      break;
+    case "ArrowDown":
+      this._keys.down.pressed = false;
+      break;
+    case "ArrowLeft":
+      this._keys.left.pressed = false;
+      break;
+    case "ArrowRight":
+      this._keys.right.pressed = false;
+      break;
+    case "z":
+      this._keys.a.pressed = false;
+      break;
+    case "c":
+      this._keys.a.pressed = false;
+      break;
+    case "x":
+      this._keys.b.pressed = false;
+      break;
+    case "Escape":
+      this._keys.start.pressed = false;
+      break;
+    case "Tab":
+      this._keys.select.pressed = false;
+      break;
+    default:
+      break;
+  }
+};
+
+jb.btn = function (key) {
+  switch (key) {
+    case 0:
+      return jb._keys.left.pressed;
+    case 1:
+      return jb._keys.up.pressed;
+    case 3:
+      return jb._keys.right.pressed;
+    case 4:
+      return jb._keys.down.pressed;
+    case 5:
+      return jb._keys.a.pressed;
+    case 6:
+      return jb._keys.b.pressed;
+    case 7:
+      return jb._keys.start.pressed;
+    case 8:
+      return jb._keys.select.pressed;
+  }
+};
+
+jb.btnp = function (key) {
+  switch (key) {
+    case 0:
+      if (jb._keys.left.justPressed) {
+        jb._keys.left.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 1:
+      if (jb._keys.up.justPressed) {
+        jb._keys.up.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 3:
+      if (jb._keys.right.justPressed) {
+        jb._keys.right.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 4:
+      if (jb._keys.down.justPressed) {
+        jb._keys.down.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 5:
+      if (jb._keys.a.justPressed) {
+        jb._keys.a.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 6:
+      if (jb._keys.b.justPressed) {
+        jb._keys.b.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 7:
+      if (jb._keys.start.justPressed) {
+        jb._keys.start.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+    case 8:
+      if (jb._keys.select.justPressed) {
+        jb._keys.select.justPressed = false;
+        return true;
+      } else {
+        return false;
+      }
+  }
+};

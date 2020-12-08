@@ -1,13 +1,16 @@
-var dx = 0;
+var x = 0;
 jb.init({
-  update: function () {
+  draw: function () {
     jb.cls();
-    // for (var x = 0; x <= 100; x++) {
-    //   jb.spr(1, x + dx, 0);
-    // }
-    // dx++;
-    // dx %= 100;
-    // jb.map(-(dx / 10), -(dx / 10));
+    jb.camera(x - 64, 0);
+    jb.map();
+    jb.spr(2, x, 64);
+    if (jb.btnp(3)) {
+      x++;
+    }
+    if (jb.btnp(0)) {
+      x--;
+    }
   },
 });
 
