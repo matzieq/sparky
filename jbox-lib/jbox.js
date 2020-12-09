@@ -291,26 +291,28 @@ jb.camera = function (x, y) {
   this._cam = { x: x, y: y };
 };
 
-jb.spr = function (spriteIndex, x, y) {
+jb.spr = function (spriteIndex, _x, _y) {
   var sprite = data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
-  var adjustedX = x - this._cam.x;
-  var adjustedY = y - this._cam.y;
-  sprite.forEach((cell, cellIndex) => {
-    var pixelX = adjustedX + (cellIndex % 8);
-    var pixelY = adjustedY + Math.floor(cellIndex / 8);
-    if (cell !== this._transparent) {
-      this._jbctx.fillStyle = _palette[cell];
-      this._jbctx.fillRect(pixelX, pixelY, 1, 1);
-    }
-  });
+  var x = _x - this._cam.x;
+  var y = _y - this._cam.y;
+  if (x > -8 && x < _screenSize && y > -8 && y < _screenSize) {
+    sprite.forEach((cell, cellIndex) => {
+      var pixelX = x + (cellIndex % 8);
+      var pixelY = y + Math.floor(cellIndex / 8);
+      if (cell !== this._transparent) {
+        this._jbctx.fillStyle = _palette[cell];
+        this._jbctx.fillRect(pixelX, pixelY, 1, 1);
+      }
+    });
+  }
 };
 
 jb._lastFrame = 0;
 
 jb._step = function (timestamp) {
   var dt = timestamp - this._lastFrame;
-  if (dt >= 1000 / 60) {
-    this._lastFrame = timestamp;
+  if (dt >= 1000 / 30) {
+    this._lastFrame = timestamp - (dt - 1000 / 30);
     this._update();
     this._draw();
   }
