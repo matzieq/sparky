@@ -3,15 +3,15 @@ var y = 0;
 jb.init({
   draw: function () {
     jb.cls();
-    jb.camera(x - 64, y - 64);
+    jb.camera(x, y);
     jb.map();
-    for (var i = 1; i < 100; i++)
-      jb.spr(
-        2,
-        x / (i / 10) + (i / 2) * Math.sin(i),
-        y / (i / 10) + (i / 2) * Math.cos(i)
-      );
-    jb.print("Hellllloooo wirruldddd", 5, 10, 0);
+    // for (var i = 1; i < 100; i++)
+    //   jb.spr(
+    //     2,
+    //     x / (i / 10) + (i / 2) * Math.sin(i),
+    //     y / (i / 10) + (i / 2) * Math.cos(i)
+    //   );
+    jb.print("0 123456789", 5, 10, 0);
   },
 
   update: function () {
