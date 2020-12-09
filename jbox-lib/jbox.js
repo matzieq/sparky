@@ -295,6 +295,8 @@ jb.spr = function (spriteIndex, _x, _y) {
   var sprite = data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
   var x = _x - this._cam.x;
   var y = _y - this._cam.y;
+
+  // Do not render anything off screen
   if (x > -8 && x < _screenSize && y > -8 && y < _screenSize) {
     sprite.forEach((cell, cellIndex) => {
       var pixelX = x + (cellIndex % 8);
@@ -307,9 +309,12 @@ jb.spr = function (spriteIndex, _x, _y) {
   }
 };
 
-jb._lastFrame = 0;
+// jb._lastFrame = 0;
 
 jb._step = function (timestamp) {
+  if (!this._lastFrame) {
+    this._lastFrame = 0;
+  }
   var dt = timestamp - this._lastFrame;
   if (dt >= 1000 / 30) {
     this._lastFrame = timestamp - (dt - 1000 / 30);
