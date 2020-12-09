@@ -1,15 +1,28 @@
 var x = 0;
+var y = 0;
 jb.init({
   draw: function () {
     jb.cls();
-    jb.camera(x - 64, 0);
+    // jb.camera(x - 64, y - 64);
     jb.map();
-    jb.spr(2, x, 64);
-    if (jb.btnp(3)) {
+    jb.spr(2, x, y);
+    jb.print("Hellllloooo wirruldddd", 5, 10, 0);
+  },
+
+  update: function () {
+    if (jb.btn(jb.BTN_RIGHT)) {
       x++;
     }
-    if (jb.btnp(0)) {
+    if (jb.btn(jb.BTN_LEFT)) {
       x--;
+    }
+
+    if (jb.btn(jb.BTN_UP)) {
+      y--;
+    }
+
+    if (jb.btn(jb.BTN_DOWN)) {
+      y++;
     }
   },
 });

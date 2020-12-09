@@ -1,3 +1,223 @@
+var _letters = {
+  A: [
+    [, 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1, 1],
+    [1, , 1],
+  ],
+  B: [
+    [1, 1],
+    [1, , 1],
+    [1, 1, 1],
+    [1, , 1],
+    [1, 1],
+  ],
+  C: [[1, 1, 1], [1], [1], [1], [1, 1, 1]],
+  D: [
+    [1, 1],
+    [1, , 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1],
+  ],
+  E: [[1, 1, 1], [1], [1, 1, 1], [1], [1, 1, 1]],
+  F: [[1, 1, 1], [1], [1, 1], [1], [1]],
+  G: [[, 1, 1], [1], [1, , 1, 1], [1, , , 1], [, 1, 1]],
+  H: [
+    [1, , 1],
+    [1, , 1],
+    [1, 1, 1],
+    [1, , 1],
+    [1, , 1],
+  ],
+  I: [
+    [1, 1, 1],
+    [, 1],
+    [, 1],
+    [, 1],
+    [1, 1, 1],
+  ],
+  J: [
+    [1, 1, 1],
+    [, , 1],
+    [, , 1],
+    [1, , 1],
+    [1, 1, 1],
+  ],
+  K: [
+    [1, , , 1],
+    [1, , 1],
+    [1, 1],
+    [1, , 1],
+    [1, , , 1],
+  ],
+  L: [[1], [1], [1], [1], [1, 1, 1]],
+  M: [
+    [1, 1, 1, 1, 1],
+    [1, , 1, , 1],
+    [1, , 1, , 1],
+    [1, , , , 1],
+    [1, , , , 1],
+  ],
+  N: [
+    [1, , , 1],
+    [1, 1, , 1],
+    [1, , 1, 1],
+    [1, , , 1],
+    [1, , , 1],
+  ],
+  O: [
+    [1, 1, 1],
+    [1, , 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1, 1],
+  ],
+  P: [[1, 1, 1], [1, , 1], [1, 1, 1], [1], [1]],
+  Q: [
+    [0, 1, 1],
+    [1, , , 1],
+    [1, , , 1],
+    [1, , 1, 1],
+    [1, 1, 1, 1],
+  ],
+  R: [
+    [1, 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1],
+    [1, , 1],
+  ],
+  S: [[1, 1, 1], [1], [1, 1, 1], [, , 1], [1, 1, 1]],
+  T: [
+    [1, 1, 1],
+    [, 1],
+    [, 1],
+    [, 1],
+    [, 1],
+  ],
+  U: [
+    [1, , 1],
+    [1, , 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1, 1],
+  ],
+  V: [
+    [1, , , , 1],
+    [1, , , , 1],
+    [, 1, , 1],
+    [, 1, , 1],
+    [, , 1],
+  ],
+  W: [
+    [1, , , , 1],
+    [1, , , , 1],
+    [1, , , , 1],
+    [1, , 1, , 1],
+    [1, 1, 1, 1, 1],
+  ],
+  X: [
+    [1, , , , 1],
+    [, 1, , 1],
+    [, , 1],
+    [, 1, , 1],
+    [1, , , , 1],
+  ],
+  Y: [
+    [1, , 1],
+    [1, , 1],
+    [, 1],
+    [, 1],
+    [, 1],
+  ],
+  Z: [
+    [1, 1, 1, 1, 1],
+    [, , , 1],
+    [, , 1],
+    [, 1],
+    [1, 1, 1, 1, 1],
+  ],
+  0: [
+    [1, 1, 1],
+    [1, , 1],
+    [1, , 1],
+    [1, , 1],
+    [1, 1, 1],
+  ],
+  1: [
+    [, 1],
+    [, 1],
+    [, 1],
+    [, 1],
+    [, 1],
+  ],
+  2: [
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+    [1, 0, 0],
+    [1, 1, 1],
+  ],
+  3: [
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+  ],
+  4: [
+    [1, 0, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+    [0, 0, 1],
+    [0, 0, 1],
+  ],
+  5: [
+    [1, 1, 1],
+    [1, 0, 0],
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+  ],
+  6: [
+    [1, 1, 1],
+    [1, 0, 0],
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+  ],
+  7: [
+    [1, 1, 1],
+    [0, 0, 1],
+    [0, 0, 1],
+    [0, 0, 1],
+    [0, 0, 1],
+  ],
+  8: [
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+  ],
+  9: [
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+    [0, 0, 1],
+    [1, 1, 1],
+  ],
+  " ": [
+    [, ,],
+    [, ,],
+    [, ,],
+    [, ,],
+    [, ,],
+  ],
+};
+
 var _palette = [
   "#fbf5ef",
   "#f2d3ab",
@@ -12,6 +232,15 @@ var _screenSize = 128;
 var jb = {};
 
 jb._transparent = 5;
+
+jb.BTN_LEFT = 0;
+jb.BTN_UP = 1;
+jb.BTN_RIGHT = 2;
+jb.BTN_DOWN = 3;
+jb.BTN_A = 4;
+jb.BTN_B = 5;
+jb.BTN_START = 6;
+jb.BTN_SELECT = 7;
 
 jb.init = function (config) {
   this._jbcanv = document.createElement("canvas");
@@ -242,17 +471,17 @@ jb.btn = function (key) {
       return jb._keys.left.pressed;
     case 1:
       return jb._keys.up.pressed;
-    case 3:
+    case 2:
       return jb._keys.right.pressed;
-    case 4:
+    case 3:
       return jb._keys.down.pressed;
-    case 5:
+    case 4:
       return jb._keys.a.pressed;
-    case 6:
+    case 5:
       return jb._keys.b.pressed;
-    case 7:
+    case 6:
       return jb._keys.start.pressed;
-    case 8:
+    case 7:
       return jb._keys.select.pressed;
   }
 };
@@ -273,42 +502,42 @@ jb.btnp = function (key) {
       } else {
         return false;
       }
-    case 3:
+    case 2:
       if (jb._keys.right.justPressed) {
         jb._keys.right.justPressed = false;
         return true;
       } else {
         return false;
       }
-    case 4:
+    case 3:
       if (jb._keys.down.justPressed) {
         jb._keys.down.justPressed = false;
         return true;
       } else {
         return false;
       }
-    case 5:
+    case 4:
       if (jb._keys.a.justPressed) {
         jb._keys.a.justPressed = false;
         return true;
       } else {
         return false;
       }
-    case 6:
+    case 5:
       if (jb._keys.b.justPressed) {
         jb._keys.b.justPressed = false;
         return true;
       } else {
         return false;
       }
-    case 7:
+    case 6:
       if (jb._keys.start.justPressed) {
         jb._keys.start.justPressed = false;
         return true;
       } else {
         return false;
       }
-    case 8:
+    case 7:
       if (jb._keys.select.justPressed) {
         jb._keys.select.justPressed = false;
         return true;
@@ -316,4 +545,37 @@ jb.btnp = function (key) {
         return false;
       }
   }
+};
+
+// Based on pixel font by PaulBGD
+jb.print = function (_str, _x, _y, col) {
+  var needed = [];
+  var str = _str.toUpperCase();
+  var x = _x - this._cam.x;
+  var y = _y - this._cam.y;
+  for (var i = 0; i < str.length; i++) {
+    var letter = _letters[str.charAt(i)];
+    if (letter) {
+      // because there's letters I didn't do
+      needed.push(letter);
+    }
+  }
+
+  this._jbctx.fillStyle = col != null ? _palette[col] : _palette[2];
+
+  var currX = 0;
+  needed.forEach((letter, letterIndex) => {
+    var currY = 0;
+    var addX = 0;
+    letter.forEach((row) => {
+      row.forEach((pixel, stringX) => {
+        if (pixel) {
+          this._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
+        }
+      });
+      addX = Math.max(addX, row.length);
+      currY += 1;
+    });
+    currX += 1 + addX;
+  });
 };
