@@ -693,7 +693,7 @@ jb.print = function (_str, _x, _y, col) {
 var actx = new AudioContext();
 
 function soundEffect(
-  frequencyValue, //The sound's fequency pitch in Hertz
+  frequency, //The sound's fequency pitch in Hertz
   attack, //The time, in seconds, to fade the sound in
   decay, //The time, in seconds, to fade the sound out
   type, //waveform type: "sine", "triangle", "square", "sawtooth"
@@ -704,12 +704,10 @@ function soundEffect(
   reverse, //If `reverse` is true the pitch will bend up
   randomValue, //A range, in Hz, within which to randomize the pitch
   dissonance, //A value in Hz. It creates 2 dissonant frequencies above and below the target pitch
-  echo, //An array: [delayTimeInSeconds, feedbackTimeInSeconds, filterValueInHz]
-  reverb, //An array: [durationInSeconds, decayRateInSeconds, reverse]
   timeout //A number, in seconds, which is the maximum duration for sound effects
 ) {
   //Set the default values
-  if (frequencyValue === undefined) frequencyValue = 200;
+  if (frequency === undefined) frequency = 200;
   if (attack === undefined) attack = 0;
   if (decay === undefined) decay = 1;
   if (type === undefined) type = "sine";
@@ -720,101 +718,50 @@ function soundEffect(
   if (reverse === undefined) reverse = false;
   if (randomValue === undefined) randomValue = 0;
   if (dissonance === undefined) dissonance = 0;
-  if (echo === undefined) echo = undefined;
-  if (reverb === undefined) reverb = undefined;
-  if (timeout === undefined) timeout = undefined;
+  if (timeout === undefined) timeout = 2;
 
   //Create an oscillator, gain and pan nodes, and connect them
   //together to the destination
   var oscillator, volume, pan;
   oscillator = actx.createOscillator();
   volume = actx.createGain();
-  if (!actx.createStereoPanner) {
-    pan = actx.createPanner();
-  } else {
-    pan = actx.createStereoPanner();
-  }
+
   oscillator.connect(volume);
-  volume.connect(pan);
-  pan.connect(actx.destination);
 
   //Set the supplied values
   volume.gain.value = volumeValue;
-  if (!actx.createStereoPanner) {
-    pan.setPosition(panValue, 0, 1 - Math.abs(panValue));
-  } else {
-    pan.pan.value = panValue;
-  }
+
   oscillator.type = type;
 
   //Optionally randomize the pitch. If the `randomValue` is greater
   //than zero, a random pitch is selected that's within the range
   //specified by `frequencyValue`. The random pitch will be either
   //above or below the target frequency.
-  var frequency;
-  var randomInt = function (min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  };
-  if (randomValue > 0) {
-    frequency = randomInt(
-      frequencyValue - randomValue / 2,
-      frequencyValue + randomValue / 2
-    );
-  } else {
-    frequency = frequencyValue;
-  }
+  // var frequency;
+  // var randomInt = function (min, max) {
+  //   return Math.floor(Math.random() * (max - min + 1)) + min;
+  // };
+  // if (randomValue > 0) {
+  //   frequency = randomInt(
+  //     frequencyValue - randomValue / 2,
+  //     frequencyValue + randomValue / 2
+  //   );
+  // } else {
+  //   frequency = frequencyValue;
+  // }
   oscillator.frequency.value = frequency;
 
   //Apply effects
   if (attack > 0) fadeIn(volume);
   fadeOut(volume);
   if (pitchBendAmount > 0) pitchBend(oscillator);
-  if (echo) addEcho(volume);
-  if (reverb) addReverb(volume);
+
   if (dissonance > 0) addDissonance();
 
   //Play the sound
   play(oscillator);
 
   //The helper functions:
-
-  function addReverb(volumeNode) {
-    var convolver = actx.createConvolver();
-    convolver.buffer = impulseResponse(reverb[0], reverb[1], reverb[2], actx);
-    volumeNode.connect(convolver);
-    convolver.connect(pan);
-  }
-
-  function addEcho(volumeNode) {
-    //Create the nodes
-    var feedback = actx.createGain(),
-      delay = actx.createDelay(),
-      filter = actx.createBiquadFilter();
-
-    //Set their values (delay time, feedback time and filter frequency)
-    delay.delayTime.value = echo[0];
-    feedback.gain.value = echo[1];
-    if (echo[2]) filter.frequency.value = echo[2];
-
-    //Create the delay feedback loop, with
-    //optional filtering
-    delay.connect(feedback);
-    if (echo[2]) {
-      feedback.connect(filter);
-      filter.connect(delay);
-    } else {
-      feedback.connect(delay);
-    }
-
-    //Connect the delay loop to the oscillator's volume
-    //node, and then to the destination
-    volumeNode.connect(delay);
-
-    //Connect the delay loop to the main sound chain's
-    //pan node, so that the echo effect is directed to
-    //the correct speaker
-    delay.connect(pan);
-  }
 
   //The `fadeIn` function
   function fadeIn(volumeNode) {
@@ -917,14 +864,7 @@ function soundEffect(
       pitchBend(d1);
       pitchBend(d2);
     }
-    if (echo) {
-      addEcho(d1Volume);
-      addEcho(d2Volume);
-    }
-    if (reverb) {
-      addReverb(d1Volume);
-      addReverb(d2Volume);
-    }
+
     play(d1);
     play(d2);
   }
@@ -938,48 +878,6 @@ function soundEffect(
     //timeout of 2 seconds, which should be enough for most sound
     //effects. Override this in the `soundEffect` parameters if you
     //need a longer sound
-    node.stop(actx.currentTime + wait + (timeout || 2));
+    node.stop(actx.currentTime + wait + timeout);
   }
-}
-
-/*
-impulseResponse
----------------
-The `makeSound` and `soundEffect` functions uses `impulseResponse`  to help create an optional reverb effect.
-It simulates a model of sound reverberation in an acoustic space which
-a convolver node can blend with the source sound. Make sure to include this function along with `makeSound`
-and `soundEffect` if you need to use the reverb feature.
-*/
-
-function impulseResponse(duration, decay, reverse, actx) {
-  //The length of the buffer.
-  var length = actx.sampleRate * duration;
-
-  //Create an audio buffer (an empty sound container) to store the reverb effect.
-  var impulse = actx.createBuffer(2, length, actx.sampleRate);
-
-  //Use `getChannelData` to initialize empty arrays to store sound data for
-  //the left and right channels.
-  var left = impulse.getChannelData(0),
-    right = impulse.getChannelData(1);
-
-  //Loop through each sample-frame and fill the channel
-  //data with random noise.
-  for (var i = 0; i < length; i++) {
-    //Apply the reverse effect, if `reverse` is `true`.
-    var n;
-    if (reverse) {
-      n = length - i;
-    } else {
-      n = i;
-    }
-
-    //Fill the left and right channels with random white noise which
-    //decays exponentially.
-    left[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
-    right[i] = (Math.random() * 2 - 1) * Math.pow(1 - n / length, decay);
-  }
-
-  //Return the `impulse`.
-  return impulse;
 }
