@@ -3,15 +3,16 @@ var y = 0;
 jb.init({
   draw: function () {
     jb.cls();
-    jb.camera(x, y);
+    jb.camera(x - 64, y - 64);
     jb.map();
-    // for (var i = 1; i < 100; i++)
-    //   jb.spr(
-    //     2,
-    //     x / (i / 10) + (i / 2) * Math.sin(i),
-    //     y / (i / 10) + (i / 2) * Math.cos(i)
-    //   );
-    jb.print('it\'s on! "DUPA"%&+-*/:;_', 5, 10, 0);
+    for (var i = 1; i < 100; i++)
+      jb.spr(
+        2,
+        x / (i / 10) + (i / 2) * Math.sin(i),
+        y / (i / 10) + (i / 2) * Math.cos(i)
+      );
+    jb.print(jb._frameRate, 5, 10, 0);
+    // console.log(jb._dt);
   },
 
   update: function () {
@@ -32,7 +33,9 @@ jb.init({
 
     if (jb.btnp(jb.BTN_A)) {
       console.log("SFX");
-      jb._soundEffect(500, "sawtooth", 0.5, 0, 1, "vibrato");
+      jb._soundEffect(jb._getFrequency(0, 0), "sine", 0.01, 0, 0.5, "vibrato");
+      jb._soundEffect(jb._getFrequency(2), "sine", 0.01, 0.5, 0.5, "vibrato");
+      jb._soundEffect(jb._getFrequency(4), "sine", 0.01, 1, 0.5, "vibrato");
     }
   },
 });

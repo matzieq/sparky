@@ -334,6 +334,8 @@ var _palette = [
 
 var _screenSize = 128;
 
+var _frameRate = 60;
+
 var jb = {};
 
 jb._transparent = 5;
@@ -368,9 +370,9 @@ jb.init = function (config) {
   this._fitToScreen();
 
   window.addEventListener("resize", () => this._fitToScreen());
-  window.addEventListener("keydown", (e) => this._onKeyPressed(e));
-  window.addEventListener("keyup", (e) => this._onKeyReleased(e));
-  window.requestAnimationFrame((t) => this._step(t));
+  window.addEventListener("keydown", e => this._onKeyPressed(e));
+  window.addEventListener("keyup", e => this._onKeyReleased(e));
+  window.requestAnimationFrame(t => this._step(t));
 
   if (config.init) {
     config.init();
@@ -400,8 +402,8 @@ jb.camera = function (x, y) {
 
 jb.spr = function (spriteIndex, _x, _y) {
   var sprite = data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
-  var x = _x - this._cam.x;
-  var y = _y - this._cam.y;
+  var x = Math.floor(_x - this._cam.x);
+  var y = Math.floor(_y - this._cam.y);
 
   // Do not render anything off screen
   if (x > -8 && x < _screenSize && y > -8 && y < _screenSize) {
@@ -421,13 +423,20 @@ jb._step = function (timestamp) {
     this._lastFrame = 0;
   }
   var dt = timestamp - this._lastFrame;
-  if (dt >= 1000 / 30) {
-    this._lastFrame = timestamp - (dt - 1000 / 30);
+  if (dt < 1000 / _frameRate) {
+    console.log("LOWER");
+  }
+
+  if (dt >= 1000 / _frameRate) {
+    this._dt = dt;
+    this._frameRate = 1000 / dt;
+    // console.log(this._dt);
+    this._lastFrame = timestamp;
     this._update();
     this._draw();
   }
 
-  window.requestAnimationFrame((t) => this._step(t));
+  window.requestAnimationFrame(t => this._step(t));
 };
 
 jb.map = function (_x, _y) {
@@ -662,7 +671,11 @@ jb.btnp = function (key) {
 // Based on pixel font by PaulBGD
 jb.print = function (_str, _x, _y, col) {
   var needed = [];
-  var str = _str.toUpperCase();
+
+  var str =
+    typeof _str === "string"
+      ? _str.toUpperCase()
+      : _str.toString().toUpperCase();
   var x = _x - this._cam.x;
   var y = _y - this._cam.y;
   for (var i = 0; i < str.length; i++) {
@@ -679,7 +692,7 @@ jb.print = function (_str, _x, _y, col) {
   needed.forEach((letter, letterIndex) => {
     var currY = 0;
     var addX = 0;
-    letter.forEach((row) => {
+    letter.forEach(row => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
           this._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
@@ -690,6 +703,13 @@ jb.print = function (_str, _x, _y, col) {
     });
     currX += 1 + addX;
   });
+};
+
+jb._middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
+
+jb._getFrequency = function (dist, octaveDiff = 0) {
+  freq = this._middleC * Math.pow(Math.pow(2, 1 / 12), dist);
+  return freq * Math.pow(2, octaveDiff);
 };
 
 jb._soundEffect = function (
