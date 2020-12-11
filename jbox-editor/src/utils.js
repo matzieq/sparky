@@ -1,4 +1,5 @@
 import { palette } from "./data";
+import { middleC } from "./constants";
 
 export function updateSprite(spriteIndex, ctx, state) {
   const sprite = state.sprites[spriteIndex];
@@ -61,4 +62,111 @@ export function download(filename, text) {
   element.click();
 
   document.body.removeChild(element);
+}
+
+export function getFrequency(dist, octaveDiff = 0) {
+  const freq = middleC * Math.pow(Math.pow(2, 1 / 12), dist);
+  return freq * Math.pow(2, octaveDiff);
+}
+
+export function soundEffect(
+  actx, // audio context
+  frequency, //The sound's fequency pitch in Hertz
+  type, //waveform type: "sine", "triangle", "square", "sawtooth"
+  volumeValue, //The sound's maximum volume
+  wait, //The time, in seconds, to wait before playing the sound
+  timeout, //A number, in seconds, which is the maximum duration for sound effects
+  fx, // what effect to apply: "fade-in", "fade-out", "vibrato", "slide"
+  nextFreq // if there is any sound after this, for slide purposes
+) {
+  //Set the default values
+  if (frequency === undefined) frequency = 200;
+  if (type === undefined) type = "sine";
+  if (volumeValue === undefined) volumeValue = 1;
+  if (wait === undefined) wait = 0;
+  if (timeout === undefined) timeout = 2;
+
+  var attack = timeout / 4;
+  var decay = timeout;
+
+  var oscillator, volume;
+  oscillator = actx.createOscillator();
+  volume = actx.createGain();
+
+  oscillator.connect(volume);
+  volume.connect(actx.destination);
+
+  oscillator.type = type;
+
+  oscillator.frequency.value = frequency;
+  volume.gain.value = volumeValue;
+
+  //Apply effects
+  switch (fx) {
+    case "fade-in":
+      fadeIn(volume);
+      break;
+    case "fade-out":
+      fadeOut(volume);
+      break;
+    case "vibrato":
+      vibrato(oscillator.frequency);
+      break;
+
+    case "slide":
+      slide(oscillator.frequency);
+      break;
+    default:
+      break;
+  }
+
+  play(oscillator);
+
+  function fadeIn(volumeNode) {
+    volumeNode.gain.value = 0;
+
+    volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
+    volumeNode.gain.linearRampToValueAtTime(
+      volumeValue,
+      actx.currentTime + wait + attack
+    );
+  }
+
+  function fadeOut(volumeNode) {
+    volumeNode.gain.linearRampToValueAtTime(
+      volumeValue,
+      actx.currentTime + wait
+    );
+    volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait + decay);
+  }
+
+  function vibrato(frequencyNode) {
+    var waveTable = [];
+    for (var i = 0; i < timeout; i += 0.01) {
+      waveTable.push(frequency + Math.sin(i * 40) * 10);
+    }
+
+    frequencyNode.setValueCurveAtTime(
+      waveTable,
+      actx.currentTime + wait,
+      timeout
+    );
+  }
+
+  function slide(frequencyNode) {
+    if (!nextFreq) {
+      return;
+    }
+    var waveTable = [frequency, nextFreq];
+
+    frequencyNode.setValueCurveAtTime(
+      waveTable,
+      actx.currentTime + wait,
+      timeout
+    );
+  }
+  function play(node) {
+    node.start(actx.currentTime + wait);
+    node.stop(actx.currentTime + wait + timeout);
+  }
 }

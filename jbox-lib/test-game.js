@@ -5,14 +5,13 @@ jb.init({
     jb.cls();
     jb.camera(x - 64, y - 64);
     jb.map();
-    for (var i = 1; i < 100; i++)
+    for (var i = 1; i < 10000; i++)
       jb.spr(
         2,
         x / (i / 10) + (i / 2) * Math.sin(i),
         y / (i / 10) + (i / 2) * Math.cos(i)
       );
-    jb.print(jb._frameRate, 5, 10, 0);
-    // console.log(jb._dt);
+    jb.print(jb._frameRate, x - 50, y - 50, 0);
   },
 
   update: function () {

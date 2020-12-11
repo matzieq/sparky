@@ -336,7 +336,7 @@ var _screenSize = 128;
 
 var _frameRate = 60;
 
-var jb = {};
+var jb = jb || {};
 
 jb._transparent = 5;
 
@@ -370,9 +370,9 @@ jb.init = function (config) {
   this._fitToScreen();
 
   window.addEventListener("resize", () => this._fitToScreen());
-  window.addEventListener("keydown", e => this._onKeyPressed(e));
-  window.addEventListener("keyup", e => this._onKeyReleased(e));
-  window.requestAnimationFrame(t => this._step(t));
+  window.addEventListener("keydown", (e) => this._onKeyPressed(e));
+  window.addEventListener("keyup", (e) => this._onKeyReleased(e));
+  window.requestAnimationFrame((t) => this._step(t));
 
   if (config.init) {
     config.init();
@@ -401,7 +401,10 @@ jb.camera = function (x, y) {
 };
 
 jb.spr = function (spriteIndex, _x, _y) {
-  var sprite = data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
+  var sprite = this._data.sprites.slice(
+    spriteIndex * 64,
+    (spriteIndex + 1) * 64
+  );
   var x = Math.floor(_x - this._cam.x);
   var y = Math.floor(_y - this._cam.y);
 
@@ -436,7 +439,7 @@ jb._step = function (timestamp) {
     this._draw();
   }
 
-  window.requestAnimationFrame(t => this._step(t));
+  window.requestAnimationFrame((t) => this._step(t));
 };
 
 jb.map = function (_x, _y) {
@@ -447,7 +450,7 @@ jb.map = function (_x, _y) {
     var screenX = i % 8;
     var screenY = Math.floor(i / 8);
 
-    var screenData = data.map.slice(i * 256, (i + 1) * 256);
+    var screenData = this._data.map.slice(i * 256, (i + 1) * 256);
 
     screenData.forEach((cell, cellIndex) => {
       var cellMapX = cellIndex % 16;
@@ -692,7 +695,7 @@ jb.print = function (_str, _x, _y, col) {
   needed.forEach((letter, letterIndex) => {
     var currY = 0;
     var addX = 0;
-    letter.forEach(row => {
+    letter.forEach((row) => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
           this._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
@@ -795,3 +798,5 @@ jb._soundEffect = function (
     node.stop(actx.currentTime + wait + timeout);
   }
 };
+
+console.log(jb);

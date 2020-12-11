@@ -19,6 +19,9 @@
             TILEMAP
           </button>
         </li>
+        <li>
+          <button class="btn control-button" data-activate="SFX">SFX</button>
+        </li>
       </ul>
     </header>
     <main class="app-content">
@@ -122,6 +125,34 @@
           <div class="tilemap-preview-wrapper">
             <canvas class="tilemap-preview" width="512" height="512"></canvas>
           </div>
+        </div>
+      </section>
+      <section id="SFX" class="section sfx-edit">
+        <div class="tempo-control">
+          <button class="btn btn-active tempo-button tempo-decrease">-</button>
+          <span class="tempo-number">1</span>
+          <button class="btn btn-active tempo-button tempo-increase">+</button>
+        </div>
+        <div class="sound-paint-wrapper">
+          <canvas class="sound-paint" width="512" height="320"></canvas>
+        </div>
+        <div class="wave-select-wrapper">
+          <button class="btn wave-button btn-active" data-type="sine">
+            SINE
+          </button>
+          <button class="btn wave-button" data-type="triangle">TRIANGLE</button>
+          <button class="btn wave-button" data-type="sawtooth">SAWTOOTH</button>
+          <button class="btn wave-button" data-type="square">SQUARE</button>
+        </div>
+        <div class="fx-select-wrapper">
+          <button class="btn fx-button btn-active">NONE</button>
+          <button class="btn fx-button">FADE-IN</button>
+          <button class="btn fx-button">FADE-OUT</button>
+          <button class="btn fx-button">VIBRATO</button>
+          <button class="btn fx-button">SLIDE</button>
+        </div>
+        <div class="play-button-wrapper">
+          <button class="btn btn-active play-button">PLAY</button>
         </div>
       </section>
       <section class="button-section">

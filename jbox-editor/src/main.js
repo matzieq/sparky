@@ -6,6 +6,8 @@ import {
   TILEMAP,
   TILEMAP_SIZE,
   TILE_SIZE,
+  MAX_SOUNDS,
+  SOUND_SAMPLE_COUNT,
 } from "./constants";
 import { palette } from "./data";
 import {
@@ -14,6 +16,8 @@ import {
   changeSelectedSprite,
   download,
   drawSprite,
+  soundEffect,
+  getFrequency,
 } from "./utils";
 
 const initialDataState = {
@@ -31,9 +35,26 @@ const initialDataState = {
         .fill(0)
         .map(() => Array(TILEMAP_SIZE).fill(0))
     ),
+
+  sfx: Array(MAX_SOUNDS)
+    .fill(0)
+    .map(() => ({
+      tempo: 18,
+      samples: Array(SOUND_SAMPLE_COUNT)
+        .fill(0)
+        .map(() => ({
+          type: "sine",
+          dist: 0,
+          oct: 0,
+          volume: 3,
+          fx: null,
+        })),
+    })),
 };
 
 let appDataState = initialDataState;
+
+console.log(appDataState);
 
 // const spriteEdit = SpriteEdit(appDataState);
 
@@ -41,6 +62,7 @@ const appEditState = {
   mode: SPRITE,
   selectedImage: 0,
   selectedScreen: 0,
+  selectedSound: 0,
   isDrawing: false,
   selectedColor: 5,
 };
@@ -77,6 +99,18 @@ const mapPreview = document.querySelector(".tilemap-preview");
 const mapPreviewCtx = mapPreview.getContext("2d");
 
 /**
+ * SFX STUFF
+ */
+
+const actx = new AudioContext();
+const playButton = document.querySelector(".play-button");
+const tempoDisplay = document.querySelector(".tempo-number");
+const tempoIncButton = document.querySelector(".tempo-increase");
+const tempoDecButton = document.querySelector(".tempo-decrease");
+const waveTypeButtons = document.querySelectorAll(".wave-button");
+const fxButtons = document.querySelectorAll(".fx-button");
+
+/**
  * GET MOVING YOU INFERNAL MACHINE
  */
 
@@ -95,6 +129,7 @@ function init() {
   attachControlListeners();
   attachSpriteEditListeners();
   attachTilemapListeners();
+  attachSfxListeners();
 
   document.addEventListener("mousedown", (e) => {
     appEditState.isDrawing = true;
@@ -129,9 +164,10 @@ function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
     download(
       "data.js",
-      `var data = ${JSON.stringify({
+      `var jb = jb || {}; jb._data = ${JSON.stringify({
         sprites: appDataState.sprites.flat(2),
         map: appDataState.tileMap.flat(2),
+        sfx: appDataState.sfx,
       })}`
     );
   });
@@ -213,6 +249,12 @@ function attachTilemapListeners() {
   });
 }
 
+function attachSfxListeners() {
+  playButton.addEventListener("click", () => {
+    soundEffect(actx, getFrequency(4, 1), "triangle", 0.2, 0, 1, "fade-out");
+  });
+}
+
 function initDrawingSurfaces() {
   fillPalette();
   changeSelectedSprite({
@@ -224,6 +266,7 @@ function initDrawingSurfaces() {
   });
   updateMap();
   updateMapPreview();
+  updateSfxPaint();
 }
 
 function enableDrawing(cell) {
@@ -345,4 +388,12 @@ function changeSelectedScreen(newScreen) {
 
   updateMapPreview();
   updateMap();
+}
+
+function updateSfxPaint() {
+  const { selectedSound } = appEditState;
+  console.log(appDataState.sfx);
+  const sound = appDataState.sfx[selectedSound];
+
+  tempoDisplay.textContent = sound.tempo;
 }
