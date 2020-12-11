@@ -31,7 +31,8 @@ jb.init({
     }
 
     if (jb.btnp(jb.BTN_A)) {
-      soundEffect(500, 0, 0.5, "sawtooth", 0.5, 0, 0, 1000, false, 0);
+      console.log("SFX");
+      jb._soundEffect(500, "sawtooth", 0.5, 0, 1, "vibrato");
     }
   },
 });

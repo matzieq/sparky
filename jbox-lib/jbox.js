@@ -353,6 +353,8 @@ jb.init = function (config) {
   this._jbcanv.height = 1024;
   this._jbctx = this._jbcanv.getContext("2d");
   this._jbctx.scale(8, 8);
+  this._actx = new AudioContext();
+
   this._jbctx.imageSmoothingEnabled = false;
   document.body.appendChild(this._jbcanv);
   this._draw = config && config.draw ? config.draw : function () {};
@@ -690,83 +692,55 @@ jb.print = function (_str, _x, _y, col) {
   });
 };
 
-var actx = new AudioContext();
-
-function soundEffect(
+jb._soundEffect = function (
   frequency, //The sound's fequency pitch in Hertz
-  attack, //The time, in seconds, to fade the sound in
-  decay, //The time, in seconds, to fade the sound out
   type, //waveform type: "sine", "triangle", "square", "sawtooth"
   volumeValue, //The sound's maximum volume
-  panValue, //The speaker pan. left: -1, middle: 0, right: 1
   wait, //The time, in seconds, to wait before playing the sound
-  pitchBendAmount, //The number of Hz in which to bend the sound's pitch down
-  reverse, //If `reverse` is true the pitch will bend up
-  randomValue, //A range, in Hz, within which to randomize the pitch
-  dissonance, //A value in Hz. It creates 2 dissonant frequencies above and below the target pitch
-  timeout //A number, in seconds, which is the maximum duration for sound effects
+  timeout, //A number, in seconds, which is the maximum duration for sound effects
+  fx // what effect to apply: "fade-in", "fade-out", "vibrato", "slide"
 ) {
   //Set the default values
   if (frequency === undefined) frequency = 200;
-  if (attack === undefined) attack = 0;
-  if (decay === undefined) decay = 1;
   if (type === undefined) type = "sine";
   if (volumeValue === undefined) volumeValue = 1;
-  if (panValue === undefined) panValue = 0;
   if (wait === undefined) wait = 0;
-  if (pitchBendAmount === undefined) pitchBendAmount = 0;
-  if (reverse === undefined) reverse = false;
-  if (randomValue === undefined) randomValue = 0;
-  if (dissonance === undefined) dissonance = 0;
   if (timeout === undefined) timeout = 2;
 
-  //Create an oscillator, gain and pan nodes, and connect them
-  //together to the destination
-  var oscillator, volume, pan;
+  var attack = timeout / 4;
+  var decay = timeout;
+  var actx = this._actx;
+
+  var oscillator, volume;
   oscillator = actx.createOscillator();
   volume = actx.createGain();
 
   oscillator.connect(volume);
-
-  //Set the supplied values
-  volume.gain.value = volumeValue;
+  volume.connect(actx.destination);
 
   oscillator.type = type;
 
-  //Optionally randomize the pitch. If the `randomValue` is greater
-  //than zero, a random pitch is selected that's within the range
-  //specified by `frequencyValue`. The random pitch will be either
-  //above or below the target frequency.
-  // var frequency;
-  // var randomInt = function (min, max) {
-  //   return Math.floor(Math.random() * (max - min + 1)) + min;
-  // };
-  // if (randomValue > 0) {
-  //   frequency = randomInt(
-  //     frequencyValue - randomValue / 2,
-  //     frequencyValue + randomValue / 2
-  //   );
-  // } else {
-  //   frequency = frequencyValue;
-  // }
   oscillator.frequency.value = frequency;
+  volume.gain.value = volumeValue;
 
   //Apply effects
-  if (attack > 0) fadeIn(volume);
-  fadeOut(volume);
-  if (pitchBendAmount > 0) pitchBend(oscillator);
+  switch (fx) {
+    case "fade-in":
+      fadeIn(volume);
+      break;
+    case "fade-out":
+      fadeOut(volume);
+      break;
+    case "vibrato":
+      vibrato(oscillator.frequency);
+      break;
+    default:
+      break;
+  }
 
-  if (dissonance > 0) addDissonance();
-
-  //Play the sound
   play(oscillator);
 
-  //The helper functions:
-
-  //The `fadeIn` function
   function fadeIn(volumeNode) {
-    //Set the volume to 0 so that you can fade
-    //in from silence
     volumeNode.gain.value = 0;
 
     volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
@@ -776,108 +750,28 @@ function soundEffect(
     );
   }
 
-  //The `fadeOut` function
   function fadeOut(volumeNode) {
     volumeNode.gain.linearRampToValueAtTime(
       volumeValue,
-      actx.currentTime + attack + wait
+      actx.currentTime + wait
     );
-    volumeNode.gain.linearRampToValueAtTime(
-      0,
-      actx.currentTime + wait + attack + decay
+    volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait + decay);
+  }
+
+  function vibrato(frequencyNode) {
+    var waveTable = [];
+    for (var i = 0; i < timeout; i += 0.01) {
+      waveTable.push(frequency + Math.sin(i * 40) * 10);
+    }
+
+    frequencyNode.setValueCurveAtTime(
+      waveTable,
+      actx.currentTime + wait,
+      timeout
     );
   }
-
-  //The `pitchBend` function
-  function pitchBend(oscillatorNode) {
-    //If `reverse` is true, make the note drop in frequency. Useful for
-    //shooting sounds
-
-    //Get the frequency of the current oscillator
-    var frequency = oscillatorNode.frequency.value;
-
-    //If `reverse` is true, make the sound drop in pitch
-    if (!reverse) {
-      oscillatorNode.frequency.linearRampToValueAtTime(
-        frequency,
-        actx.currentTime + wait
-      );
-      oscillatorNode.frequency.linearRampToValueAtTime(
-        frequency - pitchBendAmount,
-        actx.currentTime + wait + attack + decay
-      );
-    }
-
-    //If `reverse` is false, make the note rise in pitch. Useful for
-    //jumping sounds
-    else {
-      oscillatorNode.frequency.linearRampToValueAtTime(
-        frequency,
-        actx.currentTime + wait
-      );
-      oscillatorNode.frequency.linearRampToValueAtTime(
-        frequency + pitchBendAmount,
-        actx.currentTime + wait + attack + decay
-      );
-    }
-  }
-
-  //The `addDissonance` function
-  function addDissonance() {
-    //Create two more oscillators and gain nodes
-    var d1 = actx.createOscillator(),
-      d2 = actx.createOscillator(),
-      d1Volume = actx.createGain(),
-      d2Volume = actx.createGain();
-
-    //Set the volume to the `volumeValue`
-    d1Volume.gain.value = volumeValue;
-    d2Volume.gain.value = volumeValue;
-
-    //Connect the oscillators to the gain and destination nodes
-    d1.connect(d1Volume);
-    d1Volume.connect(actx.destination);
-    d2.connect(d2Volume);
-    d2Volume.connect(actx.destination);
-
-    //Set the waveform to "sawtooth" for a harsh effect
-    d1.type = "sawtooth";
-    d2.type = "sawtooth";
-
-    //Make the two oscillators play at frequencies above and
-    //below the main sound's frequency. Use whatever value was
-    //supplied by the `dissonance` argument
-    d1.frequency.value = frequency + dissonance;
-    d2.frequency.value = frequency - dissonance;
-
-    //Fade in/out, pitch bend and play the oscillators
-    //to match the main sound
-    if (attack > 0) {
-      fadeIn(d1Volume);
-      fadeIn(d2Volume);
-    }
-    if (decay > 0) {
-      fadeOut(d1Volume);
-      fadeOut(d2Volume);
-    }
-    if (pitchBendAmount > 0) {
-      pitchBend(d1);
-      pitchBend(d2);
-    }
-
-    play(d1);
-    play(d2);
-  }
-
-  //The `play` function
   function play(node) {
     node.start(actx.currentTime + wait);
-
-    //Oscillators have to be stopped otherwise they accumulate in
-    //memory and tax the CPU. They'll be stopped after a default
-    //timeout of 2 seconds, which should be enough for most sound
-    //effects. Override this in the `soundEffect` parameters if you
-    //need a longer sound
     node.stop(actx.currentTime + wait + timeout);
   }
-}
+};
