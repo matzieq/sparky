@@ -37,8 +37,10 @@ body {
 }
 
 .draw-grid {
-  display: inline-grid;
-  grid-template-columns: repeat(8, 40px);
+  display: inline-flex;
+  /* grid-template-columns: repeat(8, 40px); */
+  flex-wrap: wrap;
+  width: 322px;
   border: 1px solid #fbf5ef;
   margin-right: 40px;
 }

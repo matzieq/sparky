@@ -1,3 +1,148 @@
+// https://github.com/cwilso/AudioContext-MonkeyPatch/blob/gh-pages/AudioContextMonkeyPatch.js
+
+(function (global, exports, perf) {
+  "use strict";
+
+  function fixSetTarget(param) {
+    if (!param)
+      // if NYI, just return
+      return;
+    if (!param.setTargetAtTime)
+      param.setTargetAtTime = param.setTargetValueAtTime;
+  }
+
+  if (
+    window.hasOwnProperty("webkitAudioContext") &&
+    !window.hasOwnProperty("AudioContext")
+  ) {
+    window.AudioContext = webkitAudioContext;
+
+    if (!AudioContext.prototype.hasOwnProperty("createGain"))
+      AudioContext.prototype.createGain = AudioContext.prototype.createGainNode;
+    if (!AudioContext.prototype.hasOwnProperty("createDelay"))
+      AudioContext.prototype.createDelay =
+        AudioContext.prototype.createDelayNode;
+    if (!AudioContext.prototype.hasOwnProperty("createScriptProcessor"))
+      AudioContext.prototype.createScriptProcessor =
+        AudioContext.prototype.createJavaScriptNode;
+    if (!AudioContext.prototype.hasOwnProperty("createPeriodicWave"))
+      AudioContext.prototype.createPeriodicWave =
+        AudioContext.prototype.createWaveTable;
+
+    AudioContext.prototype.internal_createGain =
+      AudioContext.prototype.createGain;
+    AudioContext.prototype.createGain = function () {
+      var node = this.internal_createGain();
+      fixSetTarget(node.gain);
+      return node;
+    };
+
+    AudioContext.prototype.internal_createDelay =
+      AudioContext.prototype.createDelay;
+    AudioContext.prototype.createDelay = function (maxDelayTime) {
+      var node = maxDelayTime
+        ? this.internal_createDelay(maxDelayTime)
+        : this.internal_createDelay();
+      fixSetTarget(node.delayTime);
+      return node;
+    };
+
+    AudioContext.prototype.internal_createBufferSource =
+      AudioContext.prototype.createBufferSource;
+    AudioContext.prototype.createBufferSource = function () {
+      var node = this.internal_createBufferSource();
+      if (!node.start) {
+        node.start = function (when, offset, duration) {
+          if (offset || duration) this.noteGrainOn(when || 0, offset, duration);
+          else this.noteOn(when || 0);
+        };
+      } else {
+        node.internal_start = node.start;
+        node.start = function (when, offset, duration) {
+          if (typeof duration !== "undefined")
+            node.internal_start(when || 0, offset, duration);
+          else node.internal_start(when || 0, offset || 0);
+        };
+      }
+      if (!node.stop) {
+        node.stop = function (when) {
+          this.noteOff(when || 0);
+        };
+      } else {
+        node.internal_stop = node.stop;
+        node.stop = function (when) {
+          node.internal_stop(when || 0);
+        };
+      }
+      fixSetTarget(node.playbackRate);
+      return node;
+    };
+
+    AudioContext.prototype.internal_createDynamicsCompressor =
+      AudioContext.prototype.createDynamicsCompressor;
+    AudioContext.prototype.createDynamicsCompressor = function () {
+      var node = this.internal_createDynamicsCompressor();
+      fixSetTarget(node.threshold);
+      fixSetTarget(node.knee);
+      fixSetTarget(node.ratio);
+      fixSetTarget(node.reduction);
+      fixSetTarget(node.attack);
+      fixSetTarget(node.release);
+      return node;
+    };
+
+    AudioContext.prototype.internal_createBiquadFilter =
+      AudioContext.prototype.createBiquadFilter;
+    AudioContext.prototype.createBiquadFilter = function () {
+      var node = this.internal_createBiquadFilter();
+      fixSetTarget(node.frequency);
+      fixSetTarget(node.detune);
+      fixSetTarget(node.Q);
+      fixSetTarget(node.gain);
+      return node;
+    };
+
+    if (AudioContext.prototype.hasOwnProperty("createOscillator")) {
+      AudioContext.prototype.internal_createOscillator =
+        AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function () {
+        var node = this.internal_createOscillator();
+        if (!node.start) {
+          node.start = function (when) {
+            this.noteOn(when || 0);
+          };
+        } else {
+          node.internal_start = node.start;
+          node.start = function (when) {
+            node.internal_start(when || 0);
+          };
+        }
+        if (!node.stop) {
+          node.stop = function (when) {
+            this.noteOff(when || 0);
+          };
+        } else {
+          node.internal_stop = node.stop;
+          node.stop = function (when) {
+            node.internal_stop(when || 0);
+          };
+        }
+        if (!node.setPeriodicWave) node.setPeriodicWave = node.setWaveTable;
+        fixSetTarget(node.frequency);
+        fixSetTarget(node.detune);
+        return node;
+      };
+    }
+  }
+
+  if (
+    window.hasOwnProperty("webkitOfflineAudioContext") &&
+    !window.hasOwnProperty("OfflineAudioContext")
+  ) {
+    window.OfflineAudioContext = webkitOfflineAudioContext;
+  }
+})(window);
+
 var _letters = {
   A: [
     [, 1],
@@ -350,32 +495,30 @@ jb.BTN_START = 6;
 jb.BTN_SELECT = 7;
 
 jb.init = function (config) {
-  this._jbcanv = document.createElement("canvas");
-  this._jbcanv.width = 1024;
-  this._jbcanv.height = 1024;
-  this._jbctx = this._jbcanv.getContext("2d");
-  this._jbctx.scale(8, 8);
-  var AudioContext =
-    window.AudioContext || // Default
-    window.webkitAudioContext;
-  this._actx = new AudioContext();
+  jb._jbcanv = document.createElement("canvas");
+  jb._jbcanv.width = 1024;
+  jb._jbcanv.height = 1024;
+  jb._jbctx = jb._jbcanv.getContext("2d");
+  jb._jbctx.scale(8, 8);
 
-  this._jbctx.imageSmoothingEnabled = false;
-  document.body.appendChild(this._jbcanv);
-  this._draw = config && config.draw ? config.draw : function () {};
-  this._update = config && config.update ? config.update : function () {};
+  jb._actx = new AudioContext();
+
+  jb._jbctx.imageSmoothingEnabled = false;
+  document.body.appendChild(jb._jbcanv);
+  jb._draw = config && config.draw ? config.draw : function () {};
+  jb._update = config && config.update ? config.update : function () {};
 
   document.body.style.backgroundColor = "black";
   document.body.style.padding = 0;
   document.body.style.margin = 0;
-  this._jbcanv.style.display = "block";
-  this._jbcanv.style.margin = "0 auto";
-  this._fitToScreen();
+  jb._jbcanv.style.display = "block";
+  jb._jbcanv.style.margin = "0 auto";
+  jb._fitToScreen();
 
-  window.addEventListener("resize", () => this._fitToScreen());
-  window.addEventListener("keydown", (e) => this._onKeyPressed(e));
-  window.addEventListener("keyup", (e) => this._onKeyReleased(e));
-  window.requestAnimationFrame((t) => this._step(t));
+  window.addEventListener("resize", () => jb._fitToScreen());
+  window.addEventListener("keydown", (e) => jb._onKeyPressed(e));
+  window.addEventListener("keyup", (e) => jb._onKeyReleased(e));
+  window.requestAnimationFrame((t) => jb._step(t));
 
   if (config.init) {
     config.init();
@@ -384,65 +527,56 @@ jb.init = function (config) {
 
 jb._fitToScreen = function () {
   if (window.innerWidth > window.innerHeight) {
-    this._jbcanv.style.height = "100vh";
-    this._jbcanv.style.width = "auto";
+    jb._jbcanv.style.height = "100vh";
+    jb._jbcanv.style.width = "auto";
   } else {
-    this._jbcanv.style.width = "100vw";
-    this._jbcanv.style.height = "auto";
+    jb._jbcanv.style.width = "100vw";
+    jb._jbcanv.style.height = "auto";
   }
 };
 
 jb.cls = function () {
-  this._jbctx.fillStyle = _palette[this._transparent];
-  this._jbctx.fillRect(0, 0, _screenSize, _screenSize);
+  jb._jbctx.fillStyle = _palette[jb._transparent];
+  jb._jbctx.fillRect(0, 0, _screenSize, _screenSize);
 };
 
 jb._cam = { x: 0, y: 0 };
 
 jb.camera = function (x, y) {
-  this._cam = { x: x, y: y };
+  jb._cam = { x: x, y: y };
 };
 
 jb.spr = function (spriteIndex, _x, _y) {
-  var sprite = this._data.sprites.slice(
-    spriteIndex * 64,
-    (spriteIndex + 1) * 64
-  );
-  var x = Math.floor(_x - this._cam.x);
-  var y = Math.floor(_y - this._cam.y);
+  var sprite = jb._data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
+  var x = Math.floor(_x - jb._cam.x);
+  var y = Math.floor(_y - jb._cam.y);
 
   // Do not render anything off screen
   if (x > -8 && x < _screenSize && y > -8 && y < _screenSize) {
     sprite.forEach((cell, cellIndex) => {
       var pixelX = x + (cellIndex % 8);
       var pixelY = y + Math.floor(cellIndex / 8);
-      if (cell !== this._transparent) {
-        this._jbctx.fillStyle = _palette[cell];
-        this._jbctx.fillRect(pixelX, pixelY, 1, 1);
+      if (cell !== jb._transparent) {
+        jb._jbctx.fillStyle = _palette[cell];
+        jb._jbctx.fillRect(pixelX, pixelY, 1, 1);
       }
     });
   }
 };
 
 jb._step = function (timestamp) {
-  if (!this._lastFrame) {
-    this._lastFrame = 0;
+  if (!jb._lastFrame) {
+    jb._lastFrame = 0;
   }
-  var dt = timestamp - this._lastFrame;
-  if (dt < 1000 / _frameRate) {
-    console.log("LOWER");
-  }
+  var _dt = timestamp - jb._lastFrame;
 
-  if (dt >= 1000 / _frameRate) {
-    this._dt = dt;
-    this._frameRate = 1000 / dt;
-    // console.log(this._dt);
-    this._lastFrame = timestamp;
-    this._update();
-    this._draw();
-  }
+  jb._frameRate = 1000 / _dt;
+  // console.log(jb._dt);
+  jb._lastFrame = timestamp;
+  jb._update(_dt / 1000);
+  jb._draw();
 
-  window.requestAnimationFrame((t) => this._step(t));
+  window.requestAnimationFrame((t) => jb._step(t));
 };
 
 jb.map = function (_x, _y) {
@@ -453,7 +587,7 @@ jb.map = function (_x, _y) {
     var screenX = i % 8;
     var screenY = Math.floor(i / 8);
 
-    var screenData = this._data.map.slice(i * 256, (i + 1) * 256);
+    var screenData = jb._data.map.slice(i * 256, (i + 1) * 256);
 
     screenData.forEach((cell, cellIndex) => {
       var cellMapX = cellIndex % 16;
@@ -462,15 +596,15 @@ jb.map = function (_x, _y) {
       var spriteY = y + screenY * 128 + cellMapY * 8;
 
       if (
-        spriteX - this._cam.x < -8 ||
-        spriteX - this._cam.x > 128 ||
-        spriteY - this._cam.y < -8 ||
-        spriteY - this._cam.y > 128
+        spriteX - jb._cam.x < -8 ||
+        spriteX - jb._cam.x > 128 ||
+        spriteY - jb._cam.y < -8 ||
+        spriteY - jb._cam.y > 128
       ) {
         return;
       }
 
-      this.spr(cell, spriteX, spriteY);
+      jb.spr(cell, spriteX, spriteY);
     });
   }
 };
@@ -511,48 +645,48 @@ jb._keys = {
 };
 
 jb._resetKeys = function () {
-  for (key in this._keys) {
-    this._keys[key].justPressed = false;
+  for (key in jb._keys) {
+    jb._keys[key].justPressed = false;
   }
 };
 
 jb._onKeyPressed = function (e) {
   switch (e.key) {
     case "ArrowUp":
-      this._keys.up.pressed = true;
-      this._keys.up.justPressed = true;
+      jb._keys.up.pressed = true;
+      jb._keys.up.justPressed = true;
       break;
     case "ArrowDown":
-      this._keys.down.pressed = true;
-      this._keys.down.justPressed = true;
+      jb._keys.down.pressed = true;
+      jb._keys.down.justPressed = true;
       break;
     case "ArrowLeft":
-      this._keys.left.pressed = true;
-      this._keys.left.justPressed = true;
+      jb._keys.left.pressed = true;
+      jb._keys.left.justPressed = true;
       break;
     case "ArrowRight":
-      this._keys.right.pressed = true;
-      this._keys.right.justPressed = true;
+      jb._keys.right.pressed = true;
+      jb._keys.right.justPressed = true;
       break;
     case "z":
-      this._keys.a.pressed = true;
-      this._keys.a.justPressed = true;
+      jb._keys.a.pressed = true;
+      jb._keys.a.justPressed = true;
       break;
     case "c":
-      this._keys.a.pressed = true;
-      this._keys.a.justPressed = true;
+      jb._keys.a.pressed = true;
+      jb._keys.a.justPressed = true;
       break;
     case "x":
-      this._keys.b.pressed = true;
-      this._keys.b.justPressed = true;
+      jb._keys.b.pressed = true;
+      jb._keys.b.justPressed = true;
       break;
     case "Escape":
-      this._keys.start.pressed = true;
-      this._keys.start.justPressed = true;
+      jb._keys.start.pressed = true;
+      jb._keys.start.justPressed = true;
       break;
     case "Tab":
-      this._keys.select.pressed = true;
-      this._keys.select.justPressed = true;
+      jb._keys.select.pressed = true;
+      jb._keys.select.justPressed = true;
       break;
     default:
       break;
@@ -561,31 +695,31 @@ jb._onKeyPressed = function (e) {
 jb._onKeyReleased = function (e) {
   switch (e.key) {
     case "ArrowUp":
-      this._keys.up.pressed = false;
+      jb._keys.up.pressed = false;
       break;
     case "ArrowDown":
-      this._keys.down.pressed = false;
+      jb._keys.down.pressed = false;
       break;
     case "ArrowLeft":
-      this._keys.left.pressed = false;
+      jb._keys.left.pressed = false;
       break;
     case "ArrowRight":
-      this._keys.right.pressed = false;
+      jb._keys.right.pressed = false;
       break;
     case "z":
-      this._keys.a.pressed = false;
+      jb._keys.a.pressed = false;
       break;
     case "c":
-      this._keys.a.pressed = false;
+      jb._keys.a.pressed = false;
       break;
     case "x":
-      this._keys.b.pressed = false;
+      jb._keys.b.pressed = false;
       break;
     case "Escape":
-      this._keys.start.pressed = false;
+      jb._keys.start.pressed = false;
       break;
     case "Tab":
-      this._keys.select.pressed = false;
+      jb._keys.select.pressed = false;
       break;
     default:
       break;
@@ -682,8 +816,8 @@ jb.print = function (_str, _x, _y, col) {
     typeof _str === "string"
       ? _str.toUpperCase()
       : _str.toString().toUpperCase();
-  var x = _x - this._cam.x;
-  var y = _y - this._cam.y;
+  var x = _x - jb._cam.x;
+  var y = _y - jb._cam.y;
   for (var i = 0; i < str.length; i++) {
     var letter = _letters[str.charAt(i)];
     if (letter) {
@@ -692,7 +826,7 @@ jb.print = function (_str, _x, _y, col) {
     }
   }
 
-  this._jbctx.fillStyle = col != null ? _palette[col] : _palette[2];
+  jb._jbctx.fillStyle = col != null ? _palette[col] : _palette[2];
 
   var currX = 0;
   needed.forEach((letter, letterIndex) => {
@@ -701,7 +835,7 @@ jb.print = function (_str, _x, _y, col) {
     letter.forEach((row) => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
-          this._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
+          jb._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
         }
       });
       addX = Math.max(addX, row.length);
@@ -714,7 +848,7 @@ jb.print = function (_str, _x, _y, col) {
 jb._middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
 
 jb._getFrequency = function (dist, octaveDiff = 0) {
-  freq = this._middleC * Math.pow(Math.pow(2, 1 / 12), dist);
+  freq = jb._middleC * Math.pow(Math.pow(2, 1 / 12), dist);
   return freq * Math.pow(2, octaveDiff);
 };
 
@@ -735,7 +869,7 @@ jb._soundEffect = function (
 
   var attack = timeout / 4;
   var decay = timeout;
-  var actx = this._actx;
+  var actx = jb._actx;
 
   var oscillator, volume;
   oscillator = actx.createOscillator();

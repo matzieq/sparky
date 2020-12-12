@@ -19,6 +19,9 @@ import {
   soundEffect,
   getFrequency,
 } from "./utils";
+import { fixAudioContext } from "./audioContextPatch";
+
+fixAudioContext(window);
 
 const initialDataState = {
   sprites: Array(MAX_SPRITES)
@@ -67,6 +70,7 @@ const appEditState = {
   selectedColor: 5,
 };
 
+//#region selectors
 /**
  * CONTROL STUFF
  */
@@ -109,6 +113,10 @@ const tempoIncButton = document.querySelector(".tempo-increase");
 const tempoDecButton = document.querySelector(".tempo-decrease");
 const waveTypeButtons = document.querySelectorAll(".wave-button");
 const fxButtons = document.querySelectorAll(".fx-button");
+const soundCanvas = document.querySelector(".sound-paint");
+const soundCanvasCtx = soundCanvas.getContext("2d");
+
+//#endregion
 
 /**
  * GET MOVING YOU INFERNAL MACHINE
@@ -250,8 +258,14 @@ function attachTilemapListeners() {
 }
 
 function attachSfxListeners() {
-  playButton.addEventListener("click", () => {
-    soundEffect(actx, getFrequency(4, 1), "triangle", 0.2, 0, 1, "fade-out");
+  playButton.addEventListener("click", () =>
+    playSound(appEditState.selectedSound)
+  );
+  tempoIncButton.addEventListener("click", increaseTempo);
+  tempoDecButton.addEventListener("click", decreaseTempo);
+  soundCanvas.addEventListener("mousemove", (e) => {
+    const mousePos = getMousePos(e, soundCanvas);
+    drawSounds(mousePos);
   });
 }
 
@@ -396,4 +410,79 @@ function updateSfxPaint() {
   const sound = appDataState.sfx[selectedSound];
 
   tempoDisplay.textContent = sound.tempo;
+
+  soundCanvasCtx.fillStyle = palette[5];
+  soundCanvasCtx.fillRect(0, 0, soundCanvas.width, soundCanvas.height);
+
+  soundCanvasCtx.fillStyle = palette[2];
+
+  sound.samples.forEach((sample, index) => {
+    const x = index * 16;
+    const y = 256;
+    const h = sample.dist * 8 + 8;
+    const w = 14;
+    soundCanvasCtx.fillRect(x, y, w, -h);
+  });
+  console.log(soundCanvas);
+}
+
+function increaseTempo() {
+  const { selectedSound } = appEditState;
+  const sound = appDataState.sfx[selectedSound];
+  sound.tempo = Math.min(sound.tempo + 1, 32);
+  tempoDisplay.textContent = sound.tempo;
+}
+
+function decreaseTempo() {
+  const { selectedSound } = appEditState;
+  const sound = appDataState.sfx[selectedSound];
+  sound.tempo = Math.max(sound.tempo - 1, 1);
+  tempoDisplay.textContent = sound.tempo;
+}
+
+function drawSounds({ x, y }) {
+  if (!appEditState.isDrawing) {
+    return;
+  }
+  if (y < 256) {
+    const sampleIndex = Math.floor(x / 16);
+
+    const { selectedSound } = appEditState;
+    const sound = appDataState.sfx[selectedSound];
+    const sample = sound.samples[sampleIndex];
+    const sampleValue = Math.floor((256 - y) / 8);
+    sample.dist = sampleValue;
+
+    updateSfxPaint();
+    console.log(sampleIndex);
+  }
+}
+
+function playSound(soundIndex) {
+  const sound = appDataState.sfx[soundIndex];
+  const interval = sound.tempo / 100;
+
+  for (let i = 0; i < sound.samples.length; i++) {
+    const sample = sound.samples[i];
+    let repeat = 1;
+
+    for (let j = i + 1; j < sound.samples.length; j++) {
+      const nextSample = sound.samples[j];
+      if (!nextSample || nextSample.dist !== sample.dist) {
+        break;
+      }
+      repeat++;
+    }
+    soundEffect(
+      actx,
+      getFrequency(sample.dist),
+      sample.type,
+      sample.volume,
+      interval * i,
+      interval * repeat,
+      sample.fx,
+      sound.samples[i + 1] ? sound.samples[i + 1].dist : null
+    );
+    i += repeat - 1;
+  }
 }

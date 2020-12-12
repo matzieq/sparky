@@ -1,5 +1,6 @@
 var x = 0;
 var y = 0;
+var spd = 60;
 jb.init({
   draw: function () {
     jb.cls();
@@ -14,25 +15,25 @@ jb.init({
     jb.print(Math.round(jb._frameRate), x - 50, y - 50, 0);
   },
 
-  update: function () {
+  update: function (dt) {
     if (jb.btn(jb.BTN_RIGHT)) {
-      x++;
+      x += spd * dt;
     }
     if (jb.btn(jb.BTN_LEFT)) {
-      x--;
+      x -= spd * dt;
     }
 
     if (jb.btn(jb.BTN_UP)) {
-      y--;
+      y -= spd * dt;
     }
 
     if (jb.btn(jb.BTN_DOWN)) {
-      y++;
+      y += spd * dt;
     }
 
     if (jb.btnp(jb.BTN_A)) {
       console.log("SFX");
-      jb._soundEffect(440, "sine", 0.1, 0, 0.5);
+      // jb._soundEffect(440, "sine", 0.1, 0, 0.5);
       jb._soundEffect(jb._getFrequency(0, 0), "sine", 0.01, 0, 0.5);
       jb._soundEffect(jb._getFrequency(2), "sine", 0.01, 0.5, 0.5);
       jb._soundEffect(jb._getFrequency(4), "sine", 0.01, 1, 0.5);

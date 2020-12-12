@@ -120,6 +120,16 @@ export function soundEffect(
       break;
   }
 
+  // volume.gain.setTargetAtTime(
+  //   0,
+  //   actx.currentTime + wait + timeout,
+  //   timeout + wait - 0.015
+  // );
+  // volume.gain.exponentialRampToValueAtTime(
+  //   0.0001,
+  //   actx.currentTime + wait + timeout + 1
+  // );
+
   play(oscillator);
 
   function fadeIn(volumeNode) {
