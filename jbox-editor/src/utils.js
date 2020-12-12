@@ -130,6 +130,8 @@ export function soundEffect(
   //   actx.currentTime + wait + timeout + 1
   // );
 
+  cutOff(volume);
+
   play(oscillator);
 
   function fadeIn(volumeNode) {
@@ -148,6 +150,24 @@ export function soundEffect(
       actx.currentTime + wait
     );
     volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait + decay);
+  }
+
+  function cutOff(volumeNode) {
+    volumeNode.gain.value = 0;
+
+    volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
+    volumeNode.gain.linearRampToValueAtTime(
+      volumeValue,
+      actx.currentTime + wait + 0.01
+    );
+    volumeNode.gain.linearRampToValueAtTime(
+      volumeValue,
+      actx.currentTime + wait + timeout - 0.01
+    );
+    volumeNode.gain.linearRampToValueAtTime(
+      0,
+      actx.currentTime + wait + timeout - 0.001
+    );
   }
 
   function vibrato(frequencyNode) {

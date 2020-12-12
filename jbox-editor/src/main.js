@@ -42,7 +42,7 @@ const initialDataState = {
   sfx: Array(MAX_SOUNDS)
     .fill(0)
     .map(() => ({
-      tempo: 18,
+      tempo: 1,
       samples: Array(SOUND_SAMPLE_COUNT)
         .fill(0)
         .map(() => ({
@@ -423,7 +423,6 @@ function updateSfxPaint() {
     const w = 14;
     soundCanvasCtx.fillRect(x, y, w, -h);
   });
-  console.log(soundCanvas);
 }
 
 function increaseTempo() {
@@ -451,16 +450,17 @@ function drawSounds({ x, y }) {
     const sound = appDataState.sfx[selectedSound];
     const sample = sound.samples[sampleIndex];
     const sampleValue = Math.floor((256 - y) / 8);
-    sample.dist = sampleValue;
-
-    updateSfxPaint();
-    console.log(sampleIndex);
+    if (sample) {
+      sample.dist = sampleValue;
+      updateSfxPaint();
+      saveData();
+    }
   }
 }
 
 function playSound(soundIndex) {
   const sound = appDataState.sfx[soundIndex];
-  const interval = sound.tempo / 100;
+  const interval = sound.tempo / 48;
 
   for (let i = 0; i < sound.samples.length; i++) {
     const sample = sound.samples[i];
