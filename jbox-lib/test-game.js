@@ -5,13 +5,13 @@ jb.init({
     jb.cls();
     jb.camera(x - 64, y - 64);
     jb.map();
-    for (var i = 1; i < 10000; i++)
+    for (var i = 1; i < 1000; i++)
       jb.spr(
         2,
         x / (i / 10) + (i / 2) * Math.sin(i),
         y / (i / 10) + (i / 2) * Math.cos(i)
       );
-    jb.print(jb._frameRate, x - 50, y - 50, 0);
+    jb.print(Math.round(jb._frameRate), x - 50, y - 50, 0);
   },
 
   update: function () {
@@ -32,9 +32,10 @@ jb.init({
 
     if (jb.btnp(jb.BTN_A)) {
       console.log("SFX");
-      jb._soundEffect(jb._getFrequency(0, 0), "sine", 0.01, 0, 0.5, "vibrato");
-      jb._soundEffect(jb._getFrequency(2), "sine", 0.01, 0.5, 0.5, "vibrato");
-      jb._soundEffect(jb._getFrequency(4), "sine", 0.01, 1, 0.5, "vibrato");
+      jb._soundEffect(440, "sine", 0.1, 0, 0.5);
+      jb._soundEffect(jb._getFrequency(0, 0), "sine", 0.01, 0, 0.5);
+      jb._soundEffect(jb._getFrequency(2), "sine", 0.01, 0.5, 0.5);
+      jb._soundEffect(jb._getFrequency(4), "sine", 0.01, 1, 0.5);
     }
   },
 });

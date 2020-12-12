@@ -334,7 +334,7 @@ var _palette = [
 
 var _screenSize = 128;
 
-var _frameRate = 60;
+var _frameRate = 30;
 
 var jb = jb || {};
 
@@ -355,6 +355,9 @@ jb.init = function (config) {
   this._jbcanv.height = 1024;
   this._jbctx = this._jbcanv.getContext("2d");
   this._jbctx.scale(8, 8);
+  var AudioContext =
+    window.AudioContext || // Default
+    window.webkitAudioContext;
   this._actx = new AudioContext();
 
   this._jbctx.imageSmoothingEnabled = false;
@@ -782,10 +785,13 @@ jb._soundEffect = function (
   }
 
   function vibrato(frequencyNode) {
-    var waveTable = [];
+    var _waveTable = [];
     for (var i = 0; i < timeout; i += 0.01) {
-      waveTable.push(frequency + Math.sin(i * 40) * 10);
+      _waveTable.push(frequency + Math.sin(i * 40) * 10);
     }
+
+    var waveTable = new Float32Array(_waveTable);
+    console.log(waveTable);
 
     frequencyNode.setValueCurveAtTime(
       waveTable,
