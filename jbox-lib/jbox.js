@@ -516,9 +516,9 @@ jb.init = function (config) {
   jb._fitToScreen();
 
   window.addEventListener("resize", () => jb._fitToScreen());
-  window.addEventListener("keydown", (e) => jb._onKeyPressed(e));
-  window.addEventListener("keyup", (e) => jb._onKeyReleased(e));
-  window.requestAnimationFrame((t) => jb._step(t));
+  window.addEventListener("keydown", e => jb._onKeyPressed(e));
+  window.addEventListener("keyup", e => jb._onKeyReleased(e));
+  window.requestAnimationFrame(t => jb._step(t));
 
   if (config.init) {
     config.init();
@@ -571,12 +571,11 @@ jb._step = function (timestamp) {
   var _dt = timestamp - jb._lastFrame;
 
   jb._frameRate = 1000 / _dt;
-  // console.log(jb._dt);
   jb._lastFrame = timestamp;
   jb._update(_dt / 1000);
   jb._draw();
 
-  window.requestAnimationFrame((t) => jb._step(t));
+  window.requestAnimationFrame(t => jb._step(t));
 };
 
 jb.map = function (_x, _y) {
@@ -832,7 +831,7 @@ jb.print = function (_str, _x, _y, col) {
   needed.forEach((letter, letterIndex) => {
     var currY = 0;
     var addX = 0;
-    letter.forEach((row) => {
+    letter.forEach(row => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
           jb._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
@@ -925,7 +924,6 @@ jb._soundEffect = function (
     }
 
     var waveTable = new Float32Array(_waveTable);
-    console.log(waveTable);
 
     frequencyNode.setValueCurveAtTime(
       waveTable,
@@ -938,5 +936,3 @@ jb._soundEffect = function (
     node.stop(actx.currentTime + wait + timeout);
   }
 };
-
-console.log(jb);

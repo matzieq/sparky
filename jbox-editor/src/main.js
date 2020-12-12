@@ -50,6 +50,7 @@ const initialDataState = {
         .map(() => ({
           type: "sine",
           dist: 0,
+          oct: 3,
           oct: 0,
           volume: 3,
           fx: null,
@@ -58,8 +59,6 @@ const initialDataState = {
 };
 
 let appDataState = initialDataState;
-
-console.log(appDataState);
 
 // const spriteEdit = SpriteEdit(appDataState);
 
@@ -77,8 +76,6 @@ const appEditState = {
 /**
  * CONTROL STUFF
  */
-
-document.body.addEventListener("click", () => console.log("BODY"));
 
 const sections = document.querySelectorAll(".section");
 const controlButtons = document.querySelectorAll(".control-button");
@@ -121,6 +118,9 @@ const fxButtons = document.querySelectorAll(".fx-button");
 const soundCanvas = document.querySelector(".sound-paint");
 const soundCanvasCtx = soundCanvas.getContext("2d");
 const deselectButton = document.querySelector(".deselect-button");
+const nextSoundButton = document.querySelector(".sound-next");
+const prevSoundButton = document.querySelector(".sound-prev");
+const soundDisplay = document.querySelector(".sound-number");
 
 //#endregion
 
@@ -290,6 +290,9 @@ function attachSfxListeners() {
   });
 
   deselectButton.addEventListener("click", deselectSample);
+
+  nextSoundButton.addEventListener("click", toggleNextSound);
+  prevSoundButton.addEventListener("click", togglePrevSound);
 }
 
 function initDrawingSurfaces() {
@@ -429,12 +432,12 @@ function changeSelectedScreen(newScreen) {
 
 function updateSfxPaint() {
   const { selectedSound, selectedSample } = appEditState;
-  console.log(appDataState.sfx);
+
   const sound = appDataState.sfx[selectedSound];
   const sample = sound.samples[selectedSample];
-  console.log(sample);
 
   tempoDisplay.textContent = sound.tempo;
+  soundDisplay.textContent = selectedSound;
 
   soundCanvasCtx.fillStyle = palette[5];
   soundCanvasCtx.fillRect(0, 0, soundCanvas.width, soundCanvas.height);
@@ -453,6 +456,14 @@ function updateSfxPaint() {
     h = sample.volume * 8 + 8;
     soundCanvasCtx.fillRect(x, y, w, -h);
   });
+
+  soundCanvasCtx.fillStyle = palette[0];
+
+  soundCanvasCtx.fillRect(0, 256, soundCanvas.width, 1);
+  soundCanvasCtx.fillRect(0, 256 - 8 * 8, soundCanvas.width, 1);
+  soundCanvasCtx.fillRect(0, 256 - 8 * 13, soundCanvas.width, 1);
+  soundCanvasCtx.fillRect(0, 256 - 8 * 20, soundCanvas.width, 1);
+  soundCanvasCtx.fillRect(0, 256 - 8 * 25, soundCanvas.width, 1);
 
   waveTypeButtons.forEach(button => {
     button.classList.remove(buttonActiveClass);
@@ -541,7 +552,6 @@ function drawSounds({ x, y }) {
 
 function changeWaveType(e) {
   const { selectedSound, selectedSample } = appEditState;
-  console.log(e.target.dataset.type);
   const sound = appDataState.sfx[selectedSound];
   if (selectedSample == undefined) {
     sound.samples.forEach(sample => (sample.type = e.target.dataset.type));
@@ -554,7 +564,6 @@ function changeWaveType(e) {
 
 function changeFx(e) {
   const { selectedSound, selectedSample } = appEditState;
-  console.log(e.target.dataset.type);
   const sound = appDataState.sfx[selectedSound];
   if (selectedSample == undefined) {
     sound.samples.forEach(sample => (sample.fx = e.target.dataset.type));
@@ -572,7 +581,7 @@ function deselectSample() {
 
 function playSound(soundIndex) {
   const sound = appDataState.sfx[soundIndex];
-  const interval = sound.tempo / 48;
+  const interval = sound.tempo / 64;
 
   for (let i = 0; i < sound.samples.length; i++) {
     const sample = sound.samples[i];
@@ -605,4 +614,14 @@ function playSound(soundIndex) {
     );
     i += repeat - 1;
   }
+}
+
+function toggleNextSound() {
+  appEditState.selectedSound = (appEditState.selectedSound + 1) % 32;
+  updateSfxPaint();
+}
+
+function togglePrevSound() {
+  appEditState.selectedSound = (appEditState.selectedSound - 1) % 32;
+  updateSfxPaint();
 }

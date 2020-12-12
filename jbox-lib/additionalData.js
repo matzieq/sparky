@@ -1876,8 +1876,6 @@ var betterLetters = [
   5,
 ];
 
-// console.log(betterLetters.slice(0, 64));
-
 var firstLetters = betterLetters
   .slice(40, 80)
   .map(letter => (letter === 1 ? "#" : "."));

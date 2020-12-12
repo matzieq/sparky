@@ -181,7 +181,7 @@ export function soundEffect(
   function vibrato(frequencyNode) {
     var waveTable = [];
     for (var i = 0; i < timeout; i += 0.01) {
-      waveTable.push(frequency + Math.sin(i * 40) * 10);
+      waveTable.push(frequency + Math.sin(i * 40) * (frequency / 40));
     }
 
     frequencyNode.setValueCurveAtTime(
