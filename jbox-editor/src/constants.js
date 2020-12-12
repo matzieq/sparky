@@ -29,3 +29,7 @@ export const VIBRATO = "vibrato";
 export const SLIDE = "slide";
 
 export const middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
+
+export const buttonActiveClass = "btn-active";
+
+export const sectionActiveClass = "section-active";

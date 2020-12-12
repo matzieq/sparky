@@ -8,6 +8,8 @@ import {
   TILE_SIZE,
   MAX_SOUNDS,
   SOUND_SAMPLE_COUNT,
+  buttonActiveClass,
+  sectionActiveClass,
 } from "./constants";
 import { palette } from "./data";
 import {
@@ -66,6 +68,7 @@ const appEditState = {
   selectedImage: 0,
   selectedScreen: 0,
   selectedSound: 0,
+  selectedSample: null,
   isDrawing: false,
   selectedColor: 5,
 };
@@ -74,6 +77,8 @@ const appEditState = {
 /**
  * CONTROL STUFF
  */
+
+document.body.addEventListener("click", () => console.log("BODY"));
 
 const sections = document.querySelectorAll(".section");
 const controlButtons = document.querySelectorAll(".control-button");
@@ -139,7 +144,7 @@ function init() {
   attachTilemapListeners();
   attachSfxListeners();
 
-  document.addEventListener("mousedown", (e) => {
+  document.addEventListener("mousedown", e => {
     appEditState.isDrawing = true;
     if (Array.from(cells).indexOf(e.target) > 0) {
       enableDrawing(e.target);
@@ -186,17 +191,17 @@ function attachControlListeners() {
     initDrawingSurfaces();
   });
 
-  controlButtons.forEach((button) =>
+  controlButtons.forEach(button =>
     button.addEventListener("click", () => {
-      controlButtons.forEach((btn) => btn.classList.remove("btn-active"));
-      sections.forEach((section) => section.classList.remove("section-active"));
+      controlButtons.forEach(btn => btn.classList.remove(buttonActiveClass));
+      sections.forEach(section => section.classList.remove(sectionActiveClass));
 
       const toggleMode = button.dataset.activate;
-      button.classList.add("btn-active");
+      button.classList.add(buttonActiveClass);
 
       Array.from(sections)
-        .find((section) => section.id === toggleMode)
-        .classList.add("section-active");
+        .find(section => section.id === toggleMode)
+        .classList.add(sectionActiveClass);
       initDrawingSurfaces();
       appEditState.mode = toggleMode;
     })
@@ -204,18 +209,18 @@ function attachControlListeners() {
 }
 
 function attachSpriteEditListeners() {
-  cells.forEach((cell) =>
+  cells.forEach(cell =>
     cell.addEventListener("mouseover", () => enableDrawing(cell))
   );
 
   colorButtons.forEach((button, i) =>
-    button.addEventListener("click", (e) => {
+    button.addEventListener("click", e => {
       appEditState.selectedColor = i;
       currentColor.style.backgroundColor = palette[i];
     })
   );
 
-  spritePreview.addEventListener("click", (e) => {
+  spritePreview.addEventListener("click", e => {
     const mousePos = getMousePos(e, spritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -230,7 +235,7 @@ function attachSpriteEditListeners() {
 }
 
 function attachTilemapListeners() {
-  mapSpritePreview.addEventListener("click", (e) => {
+  mapSpritePreview.addEventListener("click", e => {
     const mousePos = getMousePos(e, mapSpritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -243,12 +248,12 @@ function attachTilemapListeners() {
     });
   });
 
-  mapDrawingSurface.addEventListener("mousemove", (e) => {
+  mapDrawingSurface.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
   });
 
-  mapPreview.addEventListener("click", (e) => {
+  mapPreview.addEventListener("click", e => {
     const mousePos = getMousePos(e, mapPreview);
     const mapX = Math.floor(mousePos.x / (16 * 4));
     const mapY = Math.floor(mousePos.y / (16 * 4));
@@ -263,9 +268,13 @@ function attachSfxListeners() {
   );
   tempoIncButton.addEventListener("click", increaseTempo);
   tempoDecButton.addEventListener("click", decreaseTempo);
-  soundCanvas.addEventListener("mousemove", (e) => {
+  soundCanvas.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, soundCanvas);
     drawSounds(mousePos);
+  });
+
+  waveTypeButtons.forEach(button => {
+    button.addEventListener("click", changeWaveType);
   });
 }
 
@@ -381,7 +390,7 @@ function saveData() {
 function getMapDotColor(sprite) {
   const spriteDensity = sprite
     .flat()
-    .map((cell) => (cell === 5 ? 0 : 1))
+    .map(cell => (cell === 5 ? 0 : 1))
     .reduce((a, b) => a + b, 0);
 
   let color = 5;
@@ -405,24 +414,57 @@ function changeSelectedScreen(newScreen) {
 }
 
 function updateSfxPaint() {
-  const { selectedSound } = appEditState;
+  const { selectedSound, selectedSample } = appEditState;
   console.log(appDataState.sfx);
   const sound = appDataState.sfx[selectedSound];
+  const sample = sound.samples[selectedSample];
+  console.log(sample);
 
   tempoDisplay.textContent = sound.tempo;
 
   soundCanvasCtx.fillStyle = palette[5];
   soundCanvasCtx.fillRect(0, 0, soundCanvas.width, soundCanvas.height);
 
-  soundCanvasCtx.fillStyle = palette[2];
-
   sound.samples.forEach((sample, index) => {
+    soundCanvasCtx.fillStyle = palette[selectedSample === index ? 1 : 2];
     const x = index * 16;
-    const y = 256;
-    const h = sample.dist * 8 + 8;
     const w = 14;
+
+    let y = 256;
+    let h = sample.dist * 8 + 8;
+    soundCanvasCtx.fillRect(x, y, w, -h);
+
+    soundCanvasCtx.fillStyle = palette[selectedSample === index ? 3 : 4];
+    y = 310;
+    h = sample.volume * 8 + 8;
     soundCanvasCtx.fillRect(x, y, w, -h);
   });
+
+  waveTypeButtons.forEach(button => {
+    button.classList.remove(buttonActiveClass);
+    const commonWaveType = areSameWaveTypes();
+    if (!sample && commonWaveType) {
+      if (button.dataset.type === commonWaveType) {
+        button.classList.add(buttonActiveClass);
+      }
+    } else if (button.dataset.type === sample.type) {
+      button.classList.add(buttonActiveClass);
+    }
+  });
+}
+
+function areSameWaveTypes() {
+  const { samples } = getSelectedSound();
+  const waveType = samples[0].type;
+  if (samples.every(sample => sample.type === waveType)) {
+    return waveType;
+  } else {
+    return null;
+  }
+}
+
+function getSelectedSound() {
+  return appDataState.sfx[appEditState.selectedSound];
 }
 
 function increaseTempo() {
@@ -443,19 +485,42 @@ function drawSounds({ x, y }) {
   if (!appEditState.isDrawing) {
     return;
   }
-  if (y < 256) {
-    const sampleIndex = Math.floor(x / 16);
+  const sampleIndex = Math.floor(x / 16);
+  const { selectedSound } = appEditState;
+  const sound = appDataState.sfx[selectedSound];
+  const sample = sound.samples[sampleIndex];
 
-    const { selectedSound } = appEditState;
-    const sound = appDataState.sfx[selectedSound];
-    const sample = sound.samples[sampleIndex];
-    const sampleValue = Math.floor((256 - y) / 8);
-    if (sample) {
+  if (sample) {
+    appEditState.selectedSample = sampleIndex;
+    if (y < 256) {
+      const sampleValue = Math.floor((256 - y) / 8);
       sample.dist = sampleValue;
+      updateSfxPaint();
+      saveData();
+    } else if (y > 262) {
+      const volumeValue = Math.max(Math.floor((310 - y) / 8), 0);
+      sample.volume = volumeValue;
       updateSfxPaint();
       saveData();
     }
   }
+}
+
+function changeWaveType(e) {
+  const { selectedSound, selectedSample } = appEditState;
+  console.log(e.target.dataset.type);
+  const sound = appDataState.sfx[selectedSound];
+  if (selectedSample == undefined) {
+    sound.samples.forEach(sample => (sample.type = e.target.dataset.type));
+  } else {
+    sound.samples[selectedSample].type = e.target.dataset.type;
+  }
+  updateSfxPaint();
+  saveData();
+}
+
+function deselect() {
+  appEditState.selectedSample = null;
 }
 
 function playSound(soundIndex) {
@@ -468,7 +533,13 @@ function playSound(soundIndex) {
 
     for (let j = i + 1; j < sound.samples.length; j++) {
       const nextSample = sound.samples[j];
-      if (!nextSample || nextSample.dist !== sample.dist) {
+      if (
+        !nextSample ||
+        nextSample.dist !== sample.dist ||
+        nextSample.type !== sample.type ||
+        nextSample.volume !== sample.volume ||
+        nextSample.fx !== sample.fx
+      ) {
         break;
       }
       repeat++;

@@ -28,6 +28,12 @@ body {
   text-decoration: none;
 }
 
+.app-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 36px;
+}
+
 .section {
   display: none;
 }
@@ -79,7 +85,6 @@ body {
   display: flex;
   align-items: flex-start;
   margin-top: 20px;
-  justify-content: center;
 }
 
 .draw-palette {
@@ -107,7 +112,6 @@ body {
 .sprite-edit-wrapper {
   display: flex;
   align-items: flex-start;
-  justify-content: center;
 }
 
 .sprite-preview-wrapper {
@@ -120,7 +124,6 @@ canvas {
 
 .tilemap-edit-wrapper {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   max-width: 100%;
 }
@@ -132,4 +135,14 @@ canvas {
 
 .sprite-list-wrapper {
   margin-right: 40px;
+}
+
+.sound-paint-wrapper {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 36px;
+}
+
+.sound-paint {
+  margin-right: 20px;
 }
