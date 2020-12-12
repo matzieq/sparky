@@ -852,12 +852,14 @@ jb._getFrequency = function (dist, octaveDiff = 0) {
 };
 
 jb._soundEffect = function (
+  actx, // audio context
   frequency, //The sound's fequency pitch in Hertz
   type, //waveform type: "sine", "triangle", "square", "sawtooth"
   volumeValue, //The sound's maximum volume
   wait, //The time, in seconds, to wait before playing the sound
   timeout, //A number, in seconds, which is the maximum duration for sound effects
-  fx // what effect to apply: "fade-in", "fade-out", "vibrato", "slide"
+  fx, // what effect to apply: "fade-in", "fade-out", "vibrato", "slide"
+  nextFreq // if there is any sound after this, for slide purposes
 ) {
   //Set the default values
   if (frequency === undefined) frequency = 200;
@@ -868,10 +870,9 @@ jb._soundEffect = function (
 
   var attack = timeout / 4;
   var decay = timeout;
-  var actx = jb._actx;
 
   var oscillator, volume;
-  oscillator = actx.createOscillator();
+  oscillator = jb._actx.createOscillator();
   volume = actx.createGain();
 
   oscillator.connect(volume);
@@ -881,6 +882,11 @@ jb._soundEffect = function (
 
   oscillator.frequency.value = frequency;
   volume.gain.value = volumeValue;
+
+  // mitigate irritating pop
+  // if (!["fade-in", "fade-out"].includes(fx)) {
+  cutOff(volume);
+  // }
 
   //Apply effects
   switch (fx) {
@@ -893,9 +899,23 @@ jb._soundEffect = function (
     case "vibrato":
       vibrato(oscillator.frequency);
       break;
+
+    case "slide":
+      slide(oscillator.frequency);
+      break;
     default:
       break;
   }
+
+  // volume.gain.setTargetAtTime(
+  //   0,
+  //   actx.currentTime + wait + timeout,
+  //   timeout + wait - 0.015
+  // );
+  // volume.gain.exponentialRampToValueAtTime(
+  //   0.0001,
+  //   actx.currentTime + wait + timeout + 1
+  // );
 
   play(oscillator);
 
@@ -917,13 +937,47 @@ jb._soundEffect = function (
     volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait + decay);
   }
 
-  function vibrato(frequencyNode) {
-    var _waveTable = [];
-    for (var i = 0; i < timeout; i += 0.01) {
-      _waveTable.push(frequency + Math.sin(i * 40) * 10);
+  function cutOff(volumeNode) {
+    if (fx !== "fade-in") {
+      volumeNode.gain.value = 0;
+
+      volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
+      volumeNode.gain.linearRampToValueAtTime(
+        volumeValue,
+        actx.currentTime + wait + 0.01
+      );
     }
 
-    var waveTable = new Float32Array(_waveTable);
+    if (fx !== "fade-out") {
+      volumeNode.gain.linearRampToValueAtTime(
+        volumeValue,
+        actx.currentTime + wait + timeout - 0.01
+      );
+      volumeNode.gain.linearRampToValueAtTime(
+        0,
+        actx.currentTime + wait + timeout - 0.001
+      );
+    }
+  }
+
+  function vibrato(frequencyNode) {
+    var waveTable = [];
+    for (var i = 0; i < timeout; i += 0.01) {
+      waveTable.push(frequency + Math.sin(i * 40) * (frequency / 40));
+    }
+
+    frequencyNode.setValueCurveAtTime(
+      waveTable,
+      actx.currentTime + wait,
+      timeout
+    );
+  }
+
+  function slide(frequencyNode) {
+    if (!nextFreq) {
+      return;
+    }
+    var waveTable = [frequency, nextFreq];
 
     frequencyNode.setValueCurveAtTime(
       waveTable,
@@ -934,5 +988,41 @@ jb._soundEffect = function (
   function play(node) {
     node.start(actx.currentTime + wait);
     node.stop(actx.currentTime + wait + timeout);
+  }
+};
+
+jb.sfx = function (soundIndex) {
+  const sound = jb._data.sfx[soundIndex];
+  const interval = sound.tempo / 64;
+  for (let i = 0; i < sound.samples.length; i++) {
+    const sample = sound.samples[i];
+    let repeat = 1;
+
+    if (!["fade-in", "fade-out"].includes(sample.fx)) {
+      for (let j = i + 1; j < sound.samples.length; j++) {
+        const nextSample = sound.samples[j];
+        if (
+          !nextSample ||
+          nextSample.dist !== sample.dist ||
+          nextSample.type !== sample.type ||
+          nextSample.volume !== sample.volume ||
+          nextSample.fx !== sample.fx
+        ) {
+          break;
+        }
+        repeat++;
+      }
+    }
+    soundEffect(
+      actx,
+      jb._getFrequency(sample.dist),
+      sample.type,
+      sample.volume / 5,
+      interval * i,
+      interval * repeat,
+      sample.fx,
+      sound.samples[i + 1] ? jb._getFrequency(sound.samples[i + 1].dist) : null
+    );
+    i += repeat - 1;
   }
 };

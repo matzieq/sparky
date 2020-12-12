@@ -34,9 +34,16 @@ jb.init({
     if (jb.btnp(jb.BTN_A)) {
       console.log("SFX");
       // jb._soundEffect(440, "sine", 0.1, 0, 0.5);
-      jb._soundEffect(jb._getFrequency(0, 0), "sine", 0.01, 0, 0.5);
-      jb._soundEffect(jb._getFrequency(2), "sine", 0.01, 0.5, 0.5);
-      jb._soundEffect(jb._getFrequency(4), "sine", 0.01, 1, 0.5);
+      jb._soundEffect(
+        jb._actx,
+        jb._getFrequency(0, 0),
+        "triangle",
+        0.1,
+        0,
+        0.5
+      );
+      jb._soundEffect(jb._actx, jb._getFrequency(2), "triangle", 0.1, 0.5, 0.5);
+      jb._soundEffect(jb._actx, jb._getFrequency(4), "triangle", 0.1, 1, 0.5);
     }
   },
 });

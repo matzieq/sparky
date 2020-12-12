@@ -52,7 +52,7 @@ const initialDataState = {
           dist: 0,
           oct: 3,
           oct: 0,
-          volume: 3,
+          volume: 0,
           fx: null,
         })),
     })),
@@ -543,6 +543,7 @@ function drawSounds({ x, y }) {
       saveData();
     } else if (y > 262) {
       const volumeValue = Math.max(Math.floor((310 - y) / 8), 0);
+      console.log(volumeValue);
       sample.volume = volumeValue;
       updateSfxPaint();
       saveData();
@@ -606,7 +607,7 @@ function playSound(soundIndex) {
       actx,
       getFrequency(sample.dist),
       sample.type,
-      sample.volume,
+      sample.volume / 5,
       interval * i,
       interval * repeat,
       sample.fx,
