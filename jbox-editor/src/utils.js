@@ -29,7 +29,7 @@ export function changeSelectedSprite({
 
   const spriteRow = Math.floor(newSprite / 8);
   const spriteCol = newSprite % 8;
-  contextList.forEach((ctx) => {
+  contextList.forEach(ctx => {
     state.sprites.forEach((_, index) => updateSprite(index, ctx, state));
 
     ctx.strokeStyle = palette[0];
@@ -101,6 +101,11 @@ export function soundEffect(
   oscillator.frequency.value = frequency;
   volume.gain.value = volumeValue;
 
+  // mitigate irritating pop
+  // if (!["fade-in", "fade-out"].includes(fx)) {
+  cutOff(volume);
+  // }
+
   //Apply effects
   switch (fx) {
     case "fade-in":
@@ -130,8 +135,6 @@ export function soundEffect(
   //   actx.currentTime + wait + timeout + 1
   // );
 
-  cutOff(volume);
-
   play(oscillator);
 
   function fadeIn(volumeNode) {
@@ -153,21 +156,26 @@ export function soundEffect(
   }
 
   function cutOff(volumeNode) {
-    volumeNode.gain.value = 0;
+    if (fx !== "fade-in") {
+      volumeNode.gain.value = 0;
 
-    volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
-    volumeNode.gain.linearRampToValueAtTime(
-      volumeValue,
-      actx.currentTime + wait + 0.01
-    );
-    volumeNode.gain.linearRampToValueAtTime(
-      volumeValue,
-      actx.currentTime + wait + timeout - 0.01
-    );
-    volumeNode.gain.linearRampToValueAtTime(
-      0,
-      actx.currentTime + wait + timeout - 0.001
-    );
+      volumeNode.gain.linearRampToValueAtTime(0, actx.currentTime + wait);
+      volumeNode.gain.linearRampToValueAtTime(
+        volumeValue,
+        actx.currentTime + wait + 0.01
+      );
+    }
+
+    if (fx !== "fade-out") {
+      volumeNode.gain.linearRampToValueAtTime(
+        volumeValue,
+        actx.currentTime + wait + timeout - 0.01
+      );
+      volumeNode.gain.linearRampToValueAtTime(
+        0,
+        actx.currentTime + wait + timeout - 0.001
+      );
+    }
   }
 
   function vibrato(frequencyNode) {

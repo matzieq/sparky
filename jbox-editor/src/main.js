@@ -120,6 +120,7 @@ const waveTypeButtons = document.querySelectorAll(".wave-button");
 const fxButtons = document.querySelectorAll(".fx-button");
 const soundCanvas = document.querySelector(".sound-paint");
 const soundCanvasCtx = soundCanvas.getContext("2d");
+const deselectButton = document.querySelector(".deselect-button");
 
 //#endregion
 
@@ -270,12 +271,25 @@ function attachSfxListeners() {
   tempoDecButton.addEventListener("click", decreaseTempo);
   soundCanvas.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, soundCanvas);
+    if (appEditState.isDrawing) {
+      drawSounds(mousePos);
+    }
+  });
+
+  soundCanvas.addEventListener("click", e => {
+    const mousePos = getMousePos(e, soundCanvas);
     drawSounds(mousePos);
   });
 
   waveTypeButtons.forEach(button => {
     button.addEventListener("click", changeWaveType);
   });
+
+  fxButtons.forEach(button => {
+    button.addEventListener("click", changeFx);
+  });
+
+  deselectButton.addEventListener("click", deselectSample);
 }
 
 function initDrawingSurfaces() {
@@ -447,7 +461,19 @@ function updateSfxPaint() {
       if (button.dataset.type === commonWaveType) {
         button.classList.add(buttonActiveClass);
       }
-    } else if (button.dataset.type === sample.type) {
+    } else if (sample && button.dataset.type === sample.type) {
+      button.classList.add(buttonActiveClass);
+    }
+  });
+
+  fxButtons.forEach(button => {
+    button.classList.remove(buttonActiveClass);
+    const commonFx = areSameFx();
+    if (!sample && commonFx != null) {
+      if (button.dataset.type === commonFx) {
+        button.classList.add(buttonActiveClass);
+      }
+    } else if (sample && button.dataset.type === sample.fx) {
       button.classList.add(buttonActiveClass);
     }
   });
@@ -458,6 +484,16 @@ function areSameWaveTypes() {
   const waveType = samples[0].type;
   if (samples.every(sample => sample.type === waveType)) {
     return waveType;
+  } else {
+    return null;
+  }
+}
+
+function areSameFx() {
+  const { samples } = getSelectedSound();
+  const { fx } = samples[0];
+  if (samples.every(sample => sample.fx === fx)) {
+    return fx;
   } else {
     return null;
   }
@@ -482,9 +518,6 @@ function decreaseTempo() {
 }
 
 function drawSounds({ x, y }) {
-  if (!appEditState.isDrawing) {
-    return;
-  }
   const sampleIndex = Math.floor(x / 16);
   const { selectedSound } = appEditState;
   const sound = appDataState.sfx[selectedSound];
@@ -519,8 +552,22 @@ function changeWaveType(e) {
   saveData();
 }
 
-function deselect() {
+function changeFx(e) {
+  const { selectedSound, selectedSample } = appEditState;
+  console.log(e.target.dataset.type);
+  const sound = appDataState.sfx[selectedSound];
+  if (selectedSample == undefined) {
+    sound.samples.forEach(sample => (sample.fx = e.target.dataset.type));
+  } else {
+    sound.samples[selectedSample].fx = e.target.dataset.type;
+  }
+  updateSfxPaint();
+  saveData();
+}
+
+function deselectSample() {
   appEditState.selectedSample = null;
+  updateSfxPaint();
 }
 
 function playSound(soundIndex) {
@@ -531,18 +578,20 @@ function playSound(soundIndex) {
     const sample = sound.samples[i];
     let repeat = 1;
 
-    for (let j = i + 1; j < sound.samples.length; j++) {
-      const nextSample = sound.samples[j];
-      if (
-        !nextSample ||
-        nextSample.dist !== sample.dist ||
-        nextSample.type !== sample.type ||
-        nextSample.volume !== sample.volume ||
-        nextSample.fx !== sample.fx
-      ) {
-        break;
+    if (!["fade-in", "fade-out"].includes(sample.fx)) {
+      for (let j = i + 1; j < sound.samples.length; j++) {
+        const nextSample = sound.samples[j];
+        if (
+          !nextSample ||
+          nextSample.dist !== sample.dist ||
+          nextSample.type !== sample.type ||
+          nextSample.volume !== sample.volume ||
+          nextSample.fx !== sample.fx
+        ) {
+          break;
+        }
+        repeat++;
       }
-      repeat++;
     }
     soundEffect(
       actx,
@@ -552,7 +601,7 @@ function playSound(soundIndex) {
       interval * i,
       interval * repeat,
       sample.fx,
-      sound.samples[i + 1] ? sound.samples[i + 1].dist : null
+      sound.samples[i + 1] ? getFrequency(sound.samples[i + 1].dist) : null
     );
     i += repeat - 1;
   }

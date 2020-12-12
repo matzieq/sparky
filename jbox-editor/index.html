@@ -98,7 +98,7 @@
             <canvas class="sprite-preview" width="320" height="320"></canvas>
           </div>
         </div>
-        <div class="tools-wrapper">
+        <div class="tools-wrapper btn-group">
           <div class="draw-palette">
             <button class="color-button color-0"></button>
             <button class="color-button color-1"></button>
@@ -128,16 +128,40 @@
         </div>
       </section>
       <section id="SFX" class="section sfx-edit">
-        <div class="tempo-control">
-          <button class="btn btn-active tempo-button tempo-decrease">-</button>
-          <span class="tempo-number">1</span>
-          <button class="btn btn-active tempo-button tempo-increase">+</button>
+        <div class="sfx-edit-top">
+          <div class="tempo-control">
+            <h2 class="item-set-label">TEMPO</h2>
+
+            <button
+              class="btn btn-active btn-small tempo-button tempo-decrease"
+            >
+              -
+            </button>
+            <span class="tempo-number">1</span>
+            <button
+              class="btn btn-active btn-small tempo-button tempo-increase"
+            >
+              +
+            </button>
+          </div>
+          <div class="sound-control">
+            <h2 class="item-set-label">SOUND</h2>
+
+            <button class="btn btn-active btn-small sound-button sound-prev">
+              -
+            </button>
+            <span class="tempo-number">1</span>
+            <button class="btn btn-active btn-small sound-button tempo-next">
+              +
+            </button>
+          </div>
         </div>
         <div class="sound-paint-wrapper">
           <canvas class="sound-paint" width="512" height="320"></canvas>
           <button class="btn btn-active deselect-button">DESELECT</button>
         </div>
-        <div class="wave-select-wrapper">
+        <div class="wave-select-wrapper btn-group">
+          <h2 class="item-set-label">WAVE</h2>
           <button class="btn wave-button btn-active" data-type="sine">
             SINE
           </button>
@@ -145,18 +169,19 @@
           <button class="btn wave-button" data-type="sawtooth">SAWTOOTH</button>
           <button class="btn wave-button" data-type="square">SQUARE</button>
         </div>
-        <div class="fx-select-wrapper">
-          <button class="btn fx-button btn-active">NONE</button>
-          <button class="btn fx-button">FADE-IN</button>
-          <button class="btn fx-button">FADE-OUT</button>
-          <button class="btn fx-button">VIBRATO</button>
-          <button class="btn fx-button">SLIDE</button>
+        <div class="fx-select-wrapper btn-group">
+          <h2 class="item-set-label">FX</h2>
+          <button data-type="" class="btn fx-button btn-active">NONE</button>
+          <button data-type="fade-in" class="btn fx-button">FADE-IN</button>
+          <button data-type="fade-out" class="btn fx-button">FADE-OUT</button>
+          <button data-type="vibrato" class="btn fx-button">VIBRATO</button>
+          <button data-type="slide" class="btn fx-button">SLIDE</button>
         </div>
-        <div class="play-button-wrapper">
+        <div class="play-button-wrapper btn-group">
           <button class="btn btn-active play-button">PLAY</button>
         </div>
       </section>
-      <section class="button-section">
+      <section class="btn-group">
         <button class="btn btn-active download-button">DOWNLOAD</button>
         <button class="btn btn-active clear-button">CLEAR</button>
         <input type="file" id="import-data-file" value="LOAD" />
