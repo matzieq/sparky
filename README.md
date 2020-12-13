@@ -4,8 +4,9 @@ JBox is a tiny library and asset editor for equally tiny games. In the current v
 
 ## Roadmap
 
-- Sprite flags
-- Mget and fget
+- -Sprite flags-
+- -Mget and fget-
+- Loading data in editor
 - Octaves in sound editor
 - Show sprite numbers and tile numbers in the editor
 - Drawing functions (rectangles, circles, pixels)
