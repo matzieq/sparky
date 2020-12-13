@@ -51,7 +51,6 @@ const initialDataState = {
           type: "sine",
           dist: 0,
           oct: 3,
-          oct: 0,
           volume: 0,
           fx: null,
         })),
@@ -539,6 +538,9 @@ function drawSounds({ x, y }) {
     if (y < 256) {
       const sampleValue = Math.floor((256 - y) / 8);
       sample.dist = sampleValue;
+      if (sample.volume === 0) {
+        sample.volume = 3;
+      }
       updateSfxPaint();
       saveData();
     } else if (y > 262) {
@@ -603,15 +605,19 @@ function playSound(soundIndex) {
         repeat++;
       }
     }
+
+    console.log(sample);
     soundEffect(
       actx,
-      getFrequency(sample.dist),
+      getFrequency(sample.dist, sample.oct - 3),
       sample.type,
       sample.volume / 5,
       interval * i,
       interval * repeat,
       sample.fx,
-      sound.samples[i + 1] ? getFrequency(sound.samples[i + 1].dist) : null
+      sound.samples[i + 1]
+        ? getFrequency(sound.samples[i + 1].dist, sound.samples[i + 1].oct - 3)
+        : null
     );
     i += repeat - 1;
   }

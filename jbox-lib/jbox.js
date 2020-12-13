@@ -548,8 +548,8 @@ jb.camera = function (x, y) {
 
 jb.spr = function (spriteIndex, _x, _y) {
   var sprite = jb._data.sprites.slice(spriteIndex * 64, (spriteIndex + 1) * 64);
-  var x = Math.floor(_x - jb._cam.x);
-  var y = Math.floor(_y - jb._cam.y);
+  var x = Math.round(_x - jb._cam.x);
+  var y = Math.round(_y - jb._cam.y);
 
   // Do not render anything off screen
   if (x > -8 && x < _screenSize && y > -8 && y < _screenSize) {
@@ -650,20 +650,20 @@ jb._resetKeys = function () {
 };
 
 jb._onKeyPressed = function (e) {
-  switch (e.key) {
-    case "ArrowUp":
+  switch (e.key.toLowerCase()) {
+    case "arrowup":
       jb._keys.up.pressed = true;
       jb._keys.up.justPressed = true;
       break;
-    case "ArrowDown":
+    case "arrowdown":
       jb._keys.down.pressed = true;
       jb._keys.down.justPressed = true;
       break;
-    case "ArrowLeft":
+    case "arrowleft":
       jb._keys.left.pressed = true;
       jb._keys.left.justPressed = true;
       break;
-    case "ArrowRight":
+    case "arrowright":
       jb._keys.right.pressed = true;
       jb._keys.right.justPressed = true;
       break;
@@ -679,11 +679,11 @@ jb._onKeyPressed = function (e) {
       jb._keys.b.pressed = true;
       jb._keys.b.justPressed = true;
       break;
-    case "Escape":
+    case "escape":
       jb._keys.start.pressed = true;
       jb._keys.start.justPressed = true;
       break;
-    case "Tab":
+    case "tab":
       jb._keys.select.pressed = true;
       jb._keys.select.justPressed = true;
       break;
@@ -1013,8 +1013,8 @@ jb.sfx = function (soundIndex) {
         repeat++;
       }
     }
-    soundEffect(
-      actx,
+    jb._soundEffect(
+      jb._actx,
       jb._getFrequency(sample.dist),
       sample.type,
       sample.volume / 5,
