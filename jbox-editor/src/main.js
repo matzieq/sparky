@@ -186,6 +186,7 @@ function attachControlListeners() {
       "data.js",
       `var jb = jb || {}; jb._data = ${JSON.stringify({
         sprites: appDataState.sprites.flat(2),
+        spriteFlags: appDataState.spriteFlags,
         map: appDataState.tileMap.flat(2),
         sfx: appDataState.sfx,
       })}`

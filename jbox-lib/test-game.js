@@ -7,6 +7,7 @@ jb.init({
     jb.camera(x - 64, y - 64);
     jb.map();
     jb.spr(2, x, y);
+    jb.print(jb.fget(1, 1), x - 59, y - 59, 1);
   },
 
   update: function (dt) {
