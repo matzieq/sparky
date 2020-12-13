@@ -626,6 +626,17 @@ jb.mget = function (_x, _y) {
   return mapTile != undefined ? mapTile : "";
 };
 
+jb.fget = function (sprite, flag) {
+  if (sprite < 0 || sprite > 63 || (flag && flag < 0) || (flag && flag > 7)) {
+    return null;
+  }
+  if (!flag) {
+    return jb._data.spriteFlags[sprite];
+  } else {
+    return jb._data.spriteFlags[sprite] & (1 << flag);
+  }
+};
+
 jb._keys = {
   left: {
     pressed: false,
