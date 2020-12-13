@@ -179,3 +179,13 @@ canvas {
   padding: 0 10px;
   font-size: 1.5rem;
 }
+
+.sprite-flags {
+  margin-left: 36px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}

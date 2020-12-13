@@ -18,27 +18,6 @@ export function drawSprite(sprite, ctx, x, y) {
   );
 }
 
-export function changeSelectedSprite({
-  newSprite,
-  contextList,
-  state,
-  spriteEditState,
-  updateDrawingSurface,
-}) {
-  spriteEditState.selectedImage = newSprite;
-
-  const spriteRow = Math.floor(newSprite / 8);
-  const spriteCol = newSprite % 8;
-  contextList.forEach(ctx => {
-    state.sprites.forEach((_, index) => updateSprite(index, ctx, state));
-
-    ctx.strokeStyle = palette[0];
-    ctx.lineWidth = 1;
-    ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
-  });
-  updateDrawingSurface(newSprite);
-}
-
 export function getMousePos(e, canv) {
   const rect = canv.getBoundingClientRect();
 

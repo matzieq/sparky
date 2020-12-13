@@ -15,7 +15,6 @@ import { palette } from "./data";
 import {
   getMousePos,
   updateSprite,
-  changeSelectedSprite,
   download,
   drawSprite,
   soundEffect,
@@ -33,6 +32,7 @@ const initialDataState = {
         .fill(0)
         .map(() => Array(TILE_SIZE).fill(5))
     ),
+  spriteFlags: Array(MAX_SPRITES).fill(0),
   tileMap: Array(MAX_TILEMAP_SCREENS)
     .fill(0)
     .map(() =>
@@ -89,6 +89,9 @@ const colorButtons = document.querySelectorAll(".color-button");
 const currentColor = document.querySelector(".current-color");
 const spritePreview = document.querySelector(".sprite-preview");
 const spritePreviewCtx = spritePreview.getContext("2d");
+const spriteFlags = document.querySelector(".sprite-flags");
+const checkboxes = spriteFlags.querySelectorAll("input");
+const spriteNumberInfo = document.querySelectorAll(".sprite-number");
 
 /**
  * MAP STUFF
@@ -102,6 +105,9 @@ const mapSpritePreviewCtx = mapSpritePreview.getContext("2d");
 
 const mapPreview = document.querySelector(".tilemap-preview");
 const mapPreviewCtx = mapPreview.getContext("2d");
+
+const tilemapX = document.querySelector(".tilemap-x");
+const tilemapY = document.querySelector(".tilemap-y");
 
 /**
  * SFX STUFF
@@ -153,6 +159,7 @@ function init() {
     if (e.target.classList.contains("map-drawing-surface")) {
       const mousePos = getMousePos(e, mapDrawingSurface);
       drawOnMap(mousePos);
+      updateMapCoords(mousePos);
     }
   });
 
@@ -224,14 +231,12 @@ function attachSpriteEditListeners() {
     const mousePos = getMousePos(e, spritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
-    changeSelectedSprite({
-      newSprite: spriteIndex,
-      contextList: [spritePreviewCtx, mapSpritePreviewCtx],
-      state: appDataState,
-      spriteEditState: appEditState,
-      updateDrawingSurface,
-    });
+    changeSelectedSprite(spriteIndex);
   });
+
+  checkboxes.forEach(checkbox =>
+    checkbox.addEventListener("change", toggleSpriteFlag)
+  );
 }
 
 function attachTilemapListeners() {
@@ -239,18 +244,13 @@ function attachTilemapListeners() {
     const mousePos = getMousePos(e, mapSpritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
-    changeSelectedSprite({
-      newSprite: spriteIndex,
-      contextList: [spritePreviewCtx, mapSpritePreviewCtx],
-      state: appDataState,
-      spriteEditState: appEditState,
-      updateDrawingSurface,
-    });
+    changeSelectedSprite(spriteIndex);
   });
 
   mapDrawingSurface.addEventListener("mousemove", e => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
+    updateMapCoords(mousePos);
   });
 
   mapPreview.addEventListener("click", e => {
@@ -296,16 +296,29 @@ function attachSfxListeners() {
 
 function initDrawingSurfaces() {
   fillPalette();
-  changeSelectedSprite({
-    newSprite: 0,
-    contextList: [spritePreviewCtx, mapSpritePreviewCtx],
-    state: appDataState,
-    spriteEditState: appEditState,
-    updateDrawingSurface,
-  });
+  changeSelectedSprite(0);
   updateMap();
   updateMapPreview();
   updateSfxPaint();
+  updateMapCoords({ x: 0, y: 0 });
+}
+
+function changeSelectedSprite(newSprite) {
+  appEditState.selectedImage = newSprite;
+
+  const spriteRow = Math.floor(newSprite / 8);
+  const spriteCol = newSprite % 8;
+  [spritePreviewCtx, mapSpritePreviewCtx].forEach(ctx => {
+    appDataState.sprites.forEach((_, index) =>
+      updateSprite(index, ctx, appDataState)
+    );
+
+    ctx.strokeStyle = palette[0];
+    ctx.lineWidth = 1;
+    ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
+  });
+  spriteNumberInfo.forEach(span => (span.textContent = newSprite));
+  updateDrawingSurface(newSprite);
 }
 
 function enableDrawing(cell) {
@@ -314,12 +327,29 @@ function enableDrawing(cell) {
     const cellNumber = Array.from(cells).indexOf(cell);
     const x = cellNumber % 8;
     const y = Math.floor(cellNumber / 8);
-    appDataState.sprites[selectedImage][y][x] = selectedColor;
+    getSelectedSprite()[y][x] = selectedColor;
 
     updateSprite(selectedImage, spritePreviewCtx, appDataState);
     updateDrawingSurface(selectedImage);
     saveData();
   }
+}
+
+function toggleSpriteFlag(e) {
+  e.preventDefault();
+  const { spriteFlags } = appDataState;
+  const { selectedImage } = appEditState;
+  const flagNumber = parseInt(e.target.dataset.flag);
+  const mask = 1 << flagNumber;
+
+  spriteFlags[selectedImage] ^= mask;
+
+  updateDrawingSurface(selectedImage);
+  saveData();
+}
+
+function getSelectedSprite() {
+  return appDataState.sprites[appEditState.selectedImage];
 }
 
 function fillPalette() {
@@ -336,6 +366,13 @@ function updateDrawingSurface(spriteIndex) {
   cells.forEach((cell, index) => {
     cell.style.backgroundColor = palette[pixels[index]];
   });
+
+  checkboxes.forEach(checkbox => {
+    const flagNumber = parseInt(checkbox.dataset.flag);
+    const mask = 1 << flagNumber;
+
+    checkbox.checked = appDataState.spriteFlags[spriteIndex] & mask;
+  });
 }
 
 function drawOnMap({ x, y }) {
@@ -348,7 +385,7 @@ function drawOnMap({ x, y }) {
       const mapCell = appDataState.tileMap[selectedScreen][mapY][mapX];
       if (mapCell != selectedImage) {
         appDataState.tileMap[selectedScreen][mapY][mapX] = selectedImage;
-        const sprite = appDataState.sprites[selectedImage];
+        const sprite = getSelectedSprite();
         drawSprite(sprite, mapDrawingSurfaceCtx, mapX * 8, mapY * 8);
         saveData();
       }
@@ -397,6 +434,20 @@ function updateMapPreview() {
   const markerY = Math.floor(selectedScreen / 8);
   mapPreviewCtx.strokeStyle = palette[0];
   mapPreviewCtx.strokeRect(markerX * 16, markerY * 16, 16, 16);
+}
+
+function updateMapCoords({ x, y }) {
+  const { selectedScreen } = appEditState;
+  const screenX = selectedScreen % 8;
+  const screenY = Math.floor(selectedScreen / 8);
+  const mapX = Math.floor(x / 32);
+  const mapY = Math.floor(y / 32);
+
+  const tileX = screenX * 16 + mapX;
+  const tileY = screenY * 16 + mapY;
+
+  tilemapX.textContent = tileX;
+  tilemapY.textContent = tileY;
 }
 
 function saveData() {
@@ -545,7 +596,7 @@ function drawSounds({ x, y }) {
       saveData();
     } else if (y > 262) {
       const volumeValue = Math.max(Math.floor((310 - y) / 8), 0);
-      console.log(volumeValue);
+
       sample.volume = volumeValue;
       updateSfxPaint();
       saveData();
@@ -606,7 +657,6 @@ function playSound(soundIndex) {
       }
     }
 
-    console.log(sample);
     soundEffect(
       actx,
       getFrequency(sample.dist, sample.oct - 3),

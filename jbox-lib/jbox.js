@@ -608,6 +608,24 @@ jb.map = function (_x, _y) {
   }
 };
 
+jb.mget = function (_x, _y) {
+  if (_x < 0 || _y < 0 || _x > 128 || _y > 128) {
+    return "";
+  }
+
+  var screenX = Math.floor(_x / 16);
+  var screenY = Math.floor(_y / 16);
+  var cellX = Math.floor(_x % 16);
+  var cellY = Math.floor(_y % 16);
+
+  var screenNumber = screenY * 8 + screenX;
+  var cellNumber = cellY * 16 + cellX;
+
+  var mapTile = jb._data.map[screenNumber * 256 + cellNumber];
+
+  return mapTile != undefined ? mapTile : "";
+};
+
 jb._keys = {
   left: {
     pressed: false,
