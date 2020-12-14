@@ -662,7 +662,7 @@ function playSound(soundIndex) {
       actx,
       getFrequency(sample.dist, sample.oct - 3),
       sample.type,
-      sample.volume / 5,
+      sample.volume / 40,
       interval * i,
       interval * repeat,
       sample.fx,

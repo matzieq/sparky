@@ -1042,11 +1042,12 @@ jb.sfx = function (soundIndex) {
         repeat++;
       }
     }
+
     jb._soundEffect(
       jb._actx,
       jb._getFrequency(sample.dist),
       sample.type,
-      sample.volume / 5,
+      sample.volume / 40,
       interval * i,
       interval * repeat,
       sample.fx,
