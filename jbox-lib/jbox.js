@@ -347,7 +347,7 @@ jb._rgbPal = [...jb._origPal];
 
 jb._screenSize = 128;
 
-jb._transparent = [5];
+jb._transparent = [false, false, false, false, false, true];
 
 jb.BTN_LEFT = 0;
 jb.BTN_UP = 1;
@@ -520,7 +520,7 @@ jb.spr = function (spriteIndex, _x, _y) {
       const pixelX = x + (cellIndex % 8);
       const pixelY = y + Math.floor(cellIndex / 8);
 
-      if (!this._transparent.includes(cell)) {
+      if (!this._transparent[cell]) {
         // const [r, g, b] = this._rgbPal[cell];
         this._updatePixel(pixelX, pixelY, ...this._rgbPal[cell]);
       }
@@ -718,13 +718,41 @@ jb.mget = function (_x, _y) {
 };
 
 jb.fget = function (sprite, flag) {
-  if (sprite < 0 || sprite > 63 || (flag && flag < 0) || (flag && flag > 7)) {
+  if (
+    sprite < 0 ||
+    sprite > 63 ||
+    (flag != null && flag < 0) ||
+    (flag != null && flag > 7)
+  ) {
     return null;
   }
-  if (!flag) {
+  if (flag == undefined) {
     return this._data.spriteFlags[sprite];
   } else {
-    return this._data.spriteFlags[sprite] & (1 << flag);
+    return !!(this._data.spriteFlags[sprite] & (1 << flag));
+  }
+};
+
+jb.fset = function (sprite, flagOrBitfield, value) {
+  if (
+    sprite < 0 ||
+    sprite > 63 ||
+    (value != null && (flagOrBitfield < 0 || flagOrBitfield > 7)) ||
+    (value == null && (flagOrBitfield < 0 || flagOrBitfield > 255))
+  ) {
+    return;
+  }
+
+  if (value == null) {
+    this._data.spriteFlags[sprite] = flagOrBitfield;
+  } else {
+    const mask = 1 << flagOrBitfield;
+
+    if (value) {
+      this._data.spriteFlags[sprite] |= mask;
+    } else {
+      this._data.spriteFlags[sprite] &= ~mask;
+    }
   }
 };
 
@@ -1071,7 +1099,7 @@ jb._createImageData = function () {
 
     const imgArray = sprite
       .map(pixel => {
-        const alpha = this._transparent.includes(pixel) ? 0 : 255;
+        const alpha = this._transparent[pixel] ? 0 : 255;
         const rgbPixel = [...this._rgbPal[pixel], alpha];
 
         return rgbPixel;
@@ -1083,10 +1111,17 @@ jb._createImageData = function () {
   }
 };
 
-function hexToRGB(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+jb._palt = function (col, transp) {
+  if (col == null && transp == null) {
+    this._transparent = [false, false, false, false, false, true];
+    return;
+  }
 
-  return { r, g, b };
-}
+  if (col >= 0 && col < this._origPal.length) {
+    this._transparent[col] = transp;
+  }
+};
+
+// jb._pal = function(col1, col2 ) {
+//   this._rgbPal[col1] = this._rgbPal[col2];
+// }
