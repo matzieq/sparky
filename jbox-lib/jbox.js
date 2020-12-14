@@ -334,18 +334,20 @@ jb._letters = {
   ],
 };
 
-jb._palette = [
-  "#fbf5ef",
-  "#f2d3ab",
-  "#c69fa5",
-  "#8b6d9c",
-  "#494d7e",
-  "#272744",
+jb._origPal = [
+  [251, 245, 239],
+  [242, 211, 171],
+  [198, 159, 165],
+  [139, 109, 156],
+  [73, 77, 126],
+  [39, 39, 68],
 ];
+
+jb._rgbPal = [...jb._origPal];
 
 jb._screenSize = 128;
 
-jb._transparent = 5;
+jb._transparent = [5];
 
 jb.BTN_LEFT = 0;
 jb.BTN_UP = 1;
@@ -357,8 +359,6 @@ jb.BTN_START = 6;
 jb.BTN_SELECT = 7;
 
 jb._middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
-
-jb._screenDataArray = new Uint8ClampedArray(128 * 128 * 4);
 
 jb._cam = { x: 0, y: 0 };
 
@@ -405,9 +405,7 @@ jb._getClearScreenData = function (col) {
   const emptyScreenData = new Uint8ClampedArray(128 * 128 * 4);
 
   for (let i = 0; i < 128 * 128 * 4; i += 4) {
-    const { r, g, b } = hexToRGB(
-      this._palette[col != undefined ? col : this._transparent]
-    );
+    const [r, g, b] = this._rgbPal[col != undefined ? col : 5];
     emptyScreenData[i] = r;
     emptyScreenData[i + 1] = g;
     emptyScreenData[i + 2] = b;
@@ -456,14 +454,18 @@ jb.init = function (config) {
   document.head.appendChild(style);
 
   this._fitToScreen();
-  this._screenBuffer = new ImageData(this._screenDataArray, 128, 128);
+  this._screenBuffer = new ImageData(
+    new Uint8ClampedArray(128 * 128 * 4),
+    128,
+    128
+  );
 
   window.addEventListener("resize", () => this._fitToScreen());
   window.addEventListener("keydown", e => this._onKeyPressed(e));
   window.addEventListener("keyup", e => this._onKeyReleased(e));
   window.requestAnimationFrame(t => this._step(t));
 
-  if (config.init) {
+  if (typeof config.init === "function") {
     config.init();
   }
 };
@@ -501,7 +503,7 @@ jb.cls = function (col) {
 };
 
 jb.camera = function (x, y) {
-  this._cam = { x: x, y: y };
+  this._cam = { x, y };
 };
 
 jb.spr = function (spriteIndex, _x, _y) {
@@ -518,16 +520,16 @@ jb.spr = function (spriteIndex, _x, _y) {
       const pixelX = x + (cellIndex % 8);
       const pixelY = y + Math.floor(cellIndex / 8);
 
-      if (cell !== this._transparent) {
-        const rgb = hexToRGB(this._palette[cell]);
-        this._updatePixel(pixelX, pixelY, rgb);
+      if (!this._transparent.includes(cell)) {
+        // const [r, g, b] = this._rgbPal[cell];
+        this._updatePixel(pixelX, pixelY, ...this._rgbPal[cell]);
       }
     });
   }
 };
 
-jb._updatePixel = function (x, y, { r, g, b }) {
-  if (this.isWithinScreenCoords(x, y)) {
+jb._updatePixel = function (x, y, r, g, b) {
+  if (this._isOnScreen(x, y)) {
     const i = (y * 128 + x) * 4;
 
     if (i < this._screenBuffer.data.length - 3) {
@@ -540,13 +542,13 @@ jb._updatePixel = function (x, y, { r, g, b }) {
 };
 
 jb.color = function (col) {
-  if (col >= 0 && col < this._palette.length) {
+  if (col >= 0 && col < this._rgbPal.length) {
     this._drawColor = col;
   }
 };
 
 // Based on pixel font by PaulBGD
-jb.print = function (_str, _x, _y, col) {
+jb.print = function (_str, _x, _y, col = this._drawColor) {
   const needed = [];
 
   const str =
@@ -563,10 +565,6 @@ jb.print = function (_str, _x, _y, col) {
     }
   }
 
-  const rgb = hexToRGB(
-    col != null ? this._palette[col] : this._palette[this._drawColor]
-  );
-
   let currX = 0;
   needed.forEach(letter => {
     let currY = 0;
@@ -574,7 +572,11 @@ jb.print = function (_str, _x, _y, col) {
     letter.forEach(row => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
-          this._updatePixel(currX + x + stringX, currY + y, rgb);
+          this._updatePixel(
+            currX + x + stringX,
+            currY + y,
+            ...this._rgbPal[col]
+          );
         }
       });
       addX = Math.max(addX, row.length);
@@ -584,14 +586,8 @@ jb.print = function (_str, _x, _y, col) {
   });
 };
 
-jb.circ = function (x, y, r, col) {
-  jb._circ(x, y, r, col, false);
-};
-
-jb._circ = function (_x, _y, r, col, fill) {
+jb._circ = function (_x, _y, r, col = this._drawColor, fill = false) {
   const { x, y } = this._adjustCoords(_x, _y);
-
-  const rgb = hexToRGB(this._palette[col != undefined ? col : this._drawColor]);
 
   for (let pY = -r; pY <= r; pY++) {
     for (let pX = -r; pX <= r; pX++) {
@@ -608,9 +604,13 @@ jb._circ = function (_x, _y, r, col, fill) {
         }
       }
 
-      this._updatePixel(cX, cY, rgb);
+      this._updatePixel(cX, cY, ...this._rgbPal[col]);
     }
   }
+};
+
+jb.circ = function (x, y, r, col) {
+  jb._circ(x, y, r, col);
 };
 
 jb.circfill = function (x, y, r, col) {
@@ -631,7 +631,7 @@ jb._adjustCoords = function (x, y) {
   };
 };
 
-jb._rect = function (_x0, _y0, _x1, _y1, col, fill) {
+jb._rect = function (_x0, _y0, _x1, _y1, col = this._drawColor, fill = false) {
   //
   if (_x0 > _x1) {
     [_x0, _x1] = [_x1, _x0];
@@ -644,30 +644,28 @@ jb._rect = function (_x0, _y0, _x1, _y1, col, fill) {
   const { x: x0, y: y0 } = this._adjustCoords(_x0, _y0);
   const { x: x1, y: y1 } = this._adjustCoords(_x1, _y1);
 
-  const rgb = hexToRGB(
-    col != null ? this._palette[col] : this._palette[this._drawColor]
-  );
+  const [r, g, b] = this._rgbPal[col];
 
   if (fill) {
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
-        this._updatePixel(x, y, rgb);
+        this._updatePixel(x, y, r, g, b);
       }
     }
   } else {
     for (let y = y0; y <= y1; y++) {
-      this._updatePixel(x0, y, rgb);
-      this._updatePixel(x1, y, rgb);
+      this._updatePixel(x0, y, r, g, b);
+      this._updatePixel(x1, y, r, g, b);
     }
 
     for (let x = x0; x <= x1; x++) {
-      this._updatePixel(x, y0, rgb);
-      this._updatePixel(x, y1, rgb);
+      this._updatePixel(x, y0, r, g, b);
+      this._updatePixel(x, y1, r, g, b);
     }
   }
 };
 
-jb.isWithinScreenCoords = function (x, y) {
+jb._isOnScreen = function (x, y) {
   return x >= 0 && x < this._screenSize && y >= 0 && y < this._screenSize;
 };
 
@@ -1073,12 +1071,8 @@ jb._createImageData = function () {
 
     const imgArray = sprite
       .map(pixel => {
-        const color = this._palette[pixel];
-
-        const { r, g, b } = hexToRGB(color);
-
-        const alpha = pixel === this._transparent ? 0 : 255;
-        const rgbPixel = [r, g, b, alpha];
+        const alpha = this._transparent.includes(pixel) ? 0 : 255;
+        const rgbPixel = [...this._rgbPal[pixel], alpha];
 
         return rgbPixel;
       })
