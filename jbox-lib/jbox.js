@@ -7,150 +7,6 @@
  *
  */
 
-// https://github.com/cwilso/AudioContext-MonkeyPatch/blob/gh-pages/AudioContextMonkeyPatch.js
-(function (global, exports, perf) {
-  "use strict";
-
-  function fixSetTarget(param) {
-    if (!param)
-      // if NYI, just return
-      return;
-    if (!param.setTargetAtTime)
-      param.setTargetAtTime = param.setTargetValueAtTime;
-  }
-
-  if (
-    window.hasOwnProperty("webkitAudioContext") &&
-    !window.hasOwnProperty("AudioContext")
-  ) {
-    window.AudioContext = webkitAudioContext;
-
-    if (!AudioContext.prototype.hasOwnProperty("createGain"))
-      AudioContext.prototype.createGain = AudioContext.prototype.createGainNode;
-    if (!AudioContext.prototype.hasOwnProperty("createDelay"))
-      AudioContext.prototype.createDelay =
-        AudioContext.prototype.createDelayNode;
-    if (!AudioContext.prototype.hasOwnProperty("createScriptProcessor"))
-      AudioContext.prototype.createScriptProcessor =
-        AudioContext.prototype.createJavaScriptNode;
-    if (!AudioContext.prototype.hasOwnProperty("createPeriodicWave"))
-      AudioContext.prototype.createPeriodicWave =
-        AudioContext.prototype.createWaveTable;
-
-    AudioContext.prototype.internal_createGain =
-      AudioContext.prototype.createGain;
-    AudioContext.prototype.createGain = function () {
-      var node = this.internal_createGain();
-      fixSetTarget(node.gain);
-      return node;
-    };
-
-    AudioContext.prototype.internal_createDelay =
-      AudioContext.prototype.createDelay;
-    AudioContext.prototype.createDelay = function (maxDelayTime) {
-      var node = maxDelayTime
-        ? this.internal_createDelay(maxDelayTime)
-        : this.internal_createDelay();
-      fixSetTarget(node.delayTime);
-      return node;
-    };
-
-    AudioContext.prototype.internal_createBufferSource =
-      AudioContext.prototype.createBufferSource;
-    AudioContext.prototype.createBufferSource = function () {
-      var node = this.internal_createBufferSource();
-      if (!node.start) {
-        node.start = function (when, offset, duration) {
-          if (offset || duration) this.noteGrainOn(when || 0, offset, duration);
-          else this.noteOn(when || 0);
-        };
-      } else {
-        node.internal_start = node.start;
-        node.start = function (when, offset, duration) {
-          if (typeof duration !== "undefined")
-            node.internal_start(when || 0, offset, duration);
-          else node.internal_start(when || 0, offset || 0);
-        };
-      }
-      if (!node.stop) {
-        node.stop = function (when) {
-          this.noteOff(when || 0);
-        };
-      } else {
-        node.internal_stop = node.stop;
-        node.stop = function (when) {
-          node.internal_stop(when || 0);
-        };
-      }
-      fixSetTarget(node.playbackRate);
-      return node;
-    };
-
-    AudioContext.prototype.internal_createDynamicsCompressor =
-      AudioContext.prototype.createDynamicsCompressor;
-    AudioContext.prototype.createDynamicsCompressor = function () {
-      var node = this.internal_createDynamicsCompressor();
-      fixSetTarget(node.threshold);
-      fixSetTarget(node.knee);
-      fixSetTarget(node.ratio);
-      fixSetTarget(node.reduction);
-      fixSetTarget(node.attack);
-      fixSetTarget(node.release);
-      return node;
-    };
-
-    AudioContext.prototype.internal_createBiquadFilter =
-      AudioContext.prototype.createBiquadFilter;
-    AudioContext.prototype.createBiquadFilter = function () {
-      var node = this.internal_createBiquadFilter();
-      fixSetTarget(node.frequency);
-      fixSetTarget(node.detune);
-      fixSetTarget(node.Q);
-      fixSetTarget(node.gain);
-      return node;
-    };
-
-    if (AudioContext.prototype.hasOwnProperty("createOscillator")) {
-      AudioContext.prototype.internal_createOscillator =
-        AudioContext.prototype.createOscillator;
-      AudioContext.prototype.createOscillator = function () {
-        var node = this.internal_createOscillator();
-        if (!node.start) {
-          node.start = function (when) {
-            this.noteOn(when || 0);
-          };
-        } else {
-          node.internal_start = node.start;
-          node.start = function (when) {
-            node.internal_start(when || 0);
-          };
-        }
-        if (!node.stop) {
-          node.stop = function (when) {
-            this.noteOff(when || 0);
-          };
-        } else {
-          node.internal_stop = node.stop;
-          node.stop = function (when) {
-            node.internal_stop(when || 0);
-          };
-        }
-        if (!node.setPeriodicWave) node.setPeriodicWave = node.setWaveTable;
-        fixSetTarget(node.frequency);
-        fixSetTarget(node.detune);
-        return node;
-      };
-    }
-  }
-
-  if (
-    window.hasOwnProperty("webkitOfflineAudioContext") &&
-    !window.hasOwnProperty("OfflineAudioContext")
-  ) {
-    window.OfflineAudioContext = webkitOfflineAudioContext;
-  }
-})(window);
-
 var jb = jb || {};
 
 jb._letters = {
@@ -502,6 +358,8 @@ jb.BTN_SELECT = 7;
 
 jb._middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
 
+jb._screenDataArray = new Uint8ClampedArray(128 * 128 * 4);
+
 jb._cam = { x: 0, y: 0 };
 
 jb._keys = {
@@ -541,12 +399,33 @@ jb._keys = {
 
 jb._drawColor = 0;
 
+jb._screenBuffer = null;
+
+jb._getClearScreenData = function (col) {
+  const emptyScreenData = new Uint8ClampedArray(128 * 128 * 4);
+
+  for (let i = 0; i < 128 * 128 * 4; i += 4) {
+    const { r, g, b } = hexToRGB(
+      this._palette[col != undefined ? col : this._transparent]
+    );
+    emptyScreenData[i] = r;
+    emptyScreenData[i + 1] = g;
+    emptyScreenData[i + 2] = b;
+    emptyScreenData[i + 3] = 255;
+  }
+
+  return emptyScreenData;
+};
+
 jb.init = function (config) {
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+  const scale = 1;
   this._jbcanv = document.createElement("canvas");
-  this._jbcanv.width = 1024;
-  this._jbcanv.height = 1024;
+  this._jbcanv.width = this._screenSize * scale;
+  this._jbcanv.height = this._screenSize * scale;
   this._jbctx = this._jbcanv.getContext("2d");
-  this._jbctx.scale(8, 8);
+  this._jbctx.scale(scale, scale);
 
   this._actx = new AudioContext();
 
@@ -554,13 +433,30 @@ jb.init = function (config) {
   document.body.appendChild(this._jbcanv);
   this._draw = config && config.draw ? config.draw : function () {};
   this._update = config && config.update ? config.update : function () {};
+  const style = document.createElement("style");
 
-  document.body.style.backgroundColor = "black";
-  document.body.style.padding = 0;
-  document.body.style.margin = 0;
-  this._jbcanv.style.display = "block";
-  this._jbcanv.style.margin = "0 auto";
+  style.textContent = `
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #000;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  `;
+
+  document.head.appendChild(style);
+
   this._fitToScreen();
+  this._screenBuffer = new ImageData(this._screenDataArray, 128, 128);
 
   window.addEventListener("resize", () => this._fitToScreen());
   window.addEventListener("keydown", e => this._onKeyPressed(e));
@@ -586,19 +482,22 @@ jb._step = function (timestamp) {
   if (!this._lastFrame) {
     this._lastFrame = 0;
   }
-  var _dt = timestamp - this._lastFrame;
+  const _dt = timestamp - this._lastFrame;
 
   this._frameRate = 1000 / _dt;
   this._lastFrame = timestamp;
   this._update(_dt / 1000);
   this._draw();
+  this._jbctx.putImageData(this._screenBuffer, 0, 0);
 
   window.requestAnimationFrame(t => this._step(t));
 };
 
-jb.cls = function () {
-  this._jbctx.fillStyle = this._palette[this._transparent];
-  this._jbctx.fillRect(0, 0, this._screenSize, this._screenSize);
+jb.cls = function (col) {
+  const emptyScreen = this._getClearScreenData(col);
+  for (let i = 0; i < emptyScreen.length; i++) {
+    this._screenBuffer.data[i] = emptyScreen[i];
+  }
 };
 
 jb.camera = function (x, y) {
@@ -606,62 +505,76 @@ jb.camera = function (x, y) {
 };
 
 jb.spr = function (spriteIndex, _x, _y) {
-  var sprite = this._data.sprites.slice(
+  const sprite = this._data.sprites.slice(
     spriteIndex * 64,
     (spriteIndex + 1) * 64
   );
-  var x = Math.round(_x - this._cam.x);
-  var y = Math.round(_y - this._cam.y);
+
+  const { x, y } = this._adjustCoords(_x, _y);
 
   // Do not render anything off screen
   if (x > -8 && x < this._screenSize && y > -8 && y < this._screenSize) {
     sprite.forEach((cell, cellIndex) => {
-      var pixelX = x + (cellIndex % 8);
-      var pixelY = y + Math.floor(cellIndex / 8);
+      const pixelX = x + (cellIndex % 8);
+      const pixelY = y + Math.floor(cellIndex / 8);
+
       if (cell !== this._transparent) {
-        this._jbctx.fillStyle = this._palette[cell];
-        this._jbctx.fillRect(pixelX, pixelY, 1, 1);
+        const rgb = hexToRGB(this._palette[cell]);
+        this._updatePixel(pixelX, pixelY, rgb);
       }
     });
+  }
+};
+
+jb._updatePixel = function (x, y, { r, g, b }) {
+  if (this.isWithinScreenCoords(x, y)) {
+    const i = (y * 128 + x) * 4;
+
+    if (i < this._screenBuffer.data.length - 3) {
+      this._screenBuffer.data[i] = r;
+      this._screenBuffer.data[i + 1] = g;
+      this._screenBuffer.data[i + 2] = b;
+      this._screenBuffer.data[i + 3] = 255;
+    }
   }
 };
 
 jb.color = function (col) {
   if (col >= 0 && col < this._palette.length) {
     this._drawColor = col;
-  } else {
-    console.error("Color number out of bounds: ", col);
   }
 };
 
 // Based on pixel font by PaulBGD
 jb.print = function (_str, _x, _y, col) {
-  var needed = [];
+  const needed = [];
 
-  var str =
+  const str =
     typeof _str === "string"
       ? _str.toUpperCase()
       : _str.toString().toUpperCase();
-  var x = _x - this._cam.x;
-  var y = _y - this._cam.y;
-  for (var i = 0; i < str.length; i++) {
-    var letter = this._letters[str.charAt(i)];
+
+  const { x, y } = this._adjustCoords(_x, _y);
+
+  for (let i = 0; i < str.length; i++) {
+    const letter = this._letters[str.charAt(i)];
     if (letter) {
       needed.push(letter);
     }
   }
 
-  this._jbctx.fillStyle =
-    col != null ? this._palette[col] : this._palette[this._drawColor];
+  const rgb = hexToRGB(
+    col != null ? this._palette[col] : this._palette[this._drawColor]
+  );
 
-  var currX = 0;
-  needed.forEach((letter, letterIndex) => {
-    var currY = 0;
-    var addX = 0;
+  let currX = 0;
+  needed.forEach(letter => {
+    let currY = 0;
+    let addX = 0;
     letter.forEach(row => {
       row.forEach((pixel, stringX) => {
         if (pixel) {
-          this._jbctx.fillRect(currX + x + stringX, currY + y, 1, 1);
+          this._updatePixel(currX + x + stringX, currY + y, rgb);
         }
       });
       addX = Math.max(addX, row.length);
@@ -671,42 +584,108 @@ jb.print = function (_str, _x, _y, col) {
   });
 };
 
-jb.circ = function (_x, _y, r, col) {
-  var x = Math.round(_x - this._cam.x);
-  var y = Math.round(_y - this._cam.y);
-  this._jbctx.fillStyle = this._palette[
-    col != undefined ? col : this._drawColor
-  ];
+jb.circ = function (x, y, r, col) {
+  jb._circ(x, y, r, col, false);
+};
 
-  for (let i = 0; i < 2 * Math.PI; i += Math.PI / ((Math.abs(r) || 1) * 5)) {
-    var pX = x + Math.round(Math.cos(i) * r);
-    var pY = y + Math.round(Math.sin(i) * r);
+jb._circ = function (_x, _y, r, col, fill) {
+  const { x, y } = this._adjustCoords(_x, _y);
 
-    this._jbctx.fillRect(pX, pY, 1, 1);
+  const rgb = hexToRGB(this._palette[col != undefined ? col : this._drawColor]);
+
+  for (let pY = -r; pY <= r; pY++) {
+    for (let pX = -r; pX <= r; pX++) {
+      const cX = pX + x;
+      const cY = pY + y;
+
+      if (fill) {
+        if (pX * pX + pY * pY >= r * r) {
+          continue;
+        }
+      } else {
+        if (Math.abs(pX * pX + pY * pY - r * r) > r) {
+          continue;
+        }
+      }
+
+      this._updatePixel(cX, cY, rgb);
+    }
   }
 };
 
-jb.circfill = function (_x, _y, r, col) {
-  for (let i = 0; i < Math.abs(r); i += 0.5) {
-    this.circ(_x, _y, i, col);
+jb.circfill = function (x, y, r, col) {
+  jb._circ(x, y, r, col, true);
+};
+
+jb.rect = function (x0, y0, x1, y1, col) {
+  this._rect(x0, y0, x1, y1, col, false);
+};
+jb.rectfill = function (x0, y0, x1, y1, col) {
+  this._rect(x0, y0, x1, y1, col, true);
+};
+
+jb._adjustCoords = function (x, y) {
+  return {
+    x: Math.round(x - this._cam.x),
+    y: Math.round(y - this._cam.y),
+  };
+};
+
+jb._rect = function (_x0, _y0, _x1, _y1, col, fill) {
+  //
+  if (_x0 > _x1) {
+    [_x0, _x1] = [_x1, _x0];
   }
+
+  if (_y0 > _y1) {
+    [_y0, _y1] = [_y1, _y0];
+  }
+
+  const { x: x0, y: y0 } = this._adjustCoords(_x0, _y0);
+  const { x: x1, y: y1 } = this._adjustCoords(_x1, _y1);
+
+  const rgb = hexToRGB(
+    col != null ? this._palette[col] : this._palette[this._drawColor]
+  );
+
+  if (fill) {
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        this._updatePixel(x, y, rgb);
+      }
+    }
+  } else {
+    for (let y = y0; y <= y1; y++) {
+      this._updatePixel(x0, y, rgb);
+      this._updatePixel(x1, y, rgb);
+    }
+
+    for (let x = x0; x <= x1; x++) {
+      this._updatePixel(x, y0, rgb);
+      this._updatePixel(x, y1, rgb);
+    }
+  }
+};
+
+jb.isWithinScreenCoords = function (x, y) {
+  return x >= 0 && x < this._screenSize && y >= 0 && y < this._screenSize;
 };
 
 jb.map = function (_x, _y) {
-  var x = Math.floor(_x || 0) * 8;
-  var y = Math.floor(_y || 0) * 8;
+  const x = Math.floor(_x || 0) * 8;
+  const y = Math.floor(_y || 0) * 8;
 
-  for (var i = 0; i < 64; i++) {
-    var screenX = i % 8;
-    var screenY = Math.floor(i / 8);
+  for (let i = 0; i < 64; i++) {
+    const screenX = i % 8;
+    const screenY = Math.floor(i / 8);
 
-    var screenData = this._data.map.slice(i * 256, (i + 1) * 256);
+    const screenData = this._data.map.slice(i * 256, (i + 1) * 256);
 
     screenData.forEach((cell, cellIndex) => {
-      var cellMapX = cellIndex % 16;
-      var cellMapY = Math.floor(cellIndex / 16);
-      var spriteX = x + screenX * 128 + cellMapX * 8;
-      var spriteY = y + screenY * 128 + cellMapY * 8;
+      const cellMapX = cellIndex % 16;
+      const cellMapY = Math.floor(cellIndex / 16);
+      const spriteX = x + screenX * 128 + cellMapX * 8;
+      const spriteY = y + screenY * 128 + cellMapY * 8;
 
       if (
         spriteX - this._cam.x < -8 ||
@@ -727,15 +706,15 @@ jb.mget = function (_x, _y) {
     return "";
   }
 
-  var screenX = Math.floor(_x / 16);
-  var screenY = Math.floor(_y / 16);
-  var cellX = Math.floor(_x % 16);
-  var cellY = Math.floor(_y % 16);
+  const screenX = Math.floor(_x / 16);
+  const screenY = Math.floor(_y / 16);
+  const cellX = Math.floor(_x % 16);
+  const cellY = Math.floor(_y % 16);
 
-  var screenNumber = screenY * 8 + screenX;
-  var cellNumber = cellY * 16 + cellX;
+  const screenNumber = screenY * 8 + screenX;
+  const cellNumber = cellY * 16 + cellX;
 
-  var mapTile = this._data.map[screenNumber * 256 + cellNumber];
+  const mapTile = this._data.map[screenNumber * 256 + cellNumber];
 
   return mapTile != undefined ? mapTile : "";
 };
@@ -938,12 +917,11 @@ jb._soundEffect = function (
   if (wait === undefined) wait = 0;
   if (timeout === undefined) timeout = 2;
 
-  var attack = timeout / 4;
-  var decay = timeout;
+  const attack = timeout / 4;
+  const decay = timeout;
 
-  var oscillator, volume;
-  oscillator = actx.createOscillator();
-  volume = actx.createGain();
+  const oscillator = actx.createOscillator();
+  const volume = actx.createGain();
 
   oscillator.connect(volume);
   volume.connect(actx.destination);
@@ -1019,13 +997,13 @@ jb._soundEffect = function (
   }
 
   function vibrato(frequencyNode) {
-    var waveTable = [];
-    for (var i = 0; i < timeout; i += 0.01) {
+    const waveTable = [];
+    for (let i = 0; i < timeout; i += 0.01) {
       waveTable.push(frequency + Math.sin(i * 40) * (frequency / 40));
     }
 
     frequencyNode.setValueCurveAtTime(
-      waveTable,
+      new Float32Array(waveTable),
       actx.currentTime + wait,
       timeout
     );
@@ -1035,10 +1013,10 @@ jb._soundEffect = function (
     if (!nextFreq) {
       return;
     }
-    var waveTable = [frequency, nextFreq];
+    const waveTable = [frequency, nextFreq];
 
     frequencyNode.setValueCurveAtTime(
-      waveTable,
+      new Float32Array(waveTable),
       actx.currentTime + wait,
       timeout
     );
@@ -1086,3 +1064,35 @@ jb.sfx = function (soundIndex) {
     i += repeat - 1;
   }
 };
+
+jb._createImageData = function () {
+  this._images = [];
+
+  for (let spr = 0; spr < 64; spr++) {
+    const sprite = this._data.sprites.slice(spr * 64, (spr + 1) * 64);
+
+    const imgArray = sprite
+      .map(pixel => {
+        const color = this._palette[pixel];
+
+        const { r, g, b } = hexToRGB(color);
+
+        const alpha = pixel === this._transparent ? 0 : 255;
+        const rgbPixel = [r, g, b, alpha];
+
+        return rgbPixel;
+      })
+      .flat();
+
+    const img = new ImageData(new Uint8ClampedArray(imgArray), 8, 8);
+    this._images.push(img);
+  }
+};
+
+function hexToRGB(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+
+  return { r, g, b };
+}

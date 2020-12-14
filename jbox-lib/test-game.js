@@ -1,16 +1,17 @@
 var x = 0;
 var y = 0;
 var spd = 60;
-r = 1;
+var r = 50;
 jb.init({
   draw: function () {
     jb.cls();
     jb.camera(x - 64, y - 64);
-    jb.cls();
+    for (var i = 0; i < 10; i++) {
+      jb.rect(x - 20, y + 10, x + 40, y + 60);
+    }
     jb.map();
     jb.spr(2, x, y);
-    jb.circfill(32, 32, r, 3);
-    jb.print(jb.fget(1, 1), x - 59, y - 59, 1);
+    jb.print("sraty taty dupa w kraty", x - 59, y - 59, 1);
   },
 
   update: function (dt) {
@@ -21,23 +22,25 @@ jb.init({
       x -= spd * dt;
     }
 
-    // if (jb.btn(jb.BTN_UP)) {
-    //   y -= spd * dt;
-    // }
+    if (jb.btn(jb.BTN_UP)) {
+      y -= spd * dt;
+      r++;
+    }
 
-    // if (jb.btn(jb.BTN_DOWN)) {
-    //   y += spd * dt;
-    // }
+    if (jb.btn(jb.BTN_DOWN)) {
+      y += spd * dt;
+      r--;
+    }
 
     if (jb.btnp(jb.BTN_A)) {
       jb.sfx(0);
     }
 
-    if (jb.btnp(jb.BTN_UP)) {
+    if (jb.btn(jb.BTN_UP)) {
       r++;
     }
 
-    if (jb.btnp(jb.BTN_DOWN)) {
+    if (jb.btn(jb.BTN_DOWN)) {
       r--;
     }
   },
