@@ -184,12 +184,14 @@ function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
     download(
       "data.js",
-      `var jb = jb || {}; jb._data = ${JSON.stringify({
-        sprites: appDataState.sprites.flat(2),
-        spriteFlags: appDataState.spriteFlags,
-        map: appDataState.tileMap.flat(2),
-        sfx: appDataState.sfx,
-      })}`
+      `var jb = jb || {}; jb._data = jb._data || []; jb._data.push(${JSON.stringify(
+        {
+          sprites: appDataState.sprites.flat(2),
+          spriteFlags: appDataState.spriteFlags,
+          map: appDataState.tileMap.flat(2),
+          sfx: appDataState.sfx,
+        }
+      )});`
     );
   });
 

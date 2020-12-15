@@ -4,19 +4,43 @@ let spd = 60;
 let r = 50;
 
 jb.init({
+  init: function () {
+    jb.mset(0, 0, 2);
+    jb.sset(10, 6, 1);
+    console.log(jb.mget(0, 0));
+    console.log(jb.mget(0, 1));
+    console.log(jb.fget(jb.mget(0, 1)));
+    console.log(jb.fget(jb.mget(0, 1), 0));
+    console.log(jb.fget(jb.mget(0, 1), 1));
+  },
   draw: function () {
     jb.cls();
     jb.camera(x - 64, y - 64);
-    jb.color(4);
-    // for (let i = 0; i < 10; i++) {
-    jb.rect(x - 20, y + 10, x + 40, y + 60);
-    jb.circ(x, y, 20);
+    // jb.color(4);
+    // for (let i = 0; i < 1000; i++) {
+    // jb.rect(20, 10, 40, 60);
+    // jb.circ(x, y, 20);
+    // jb.line(
+    //   Math.sin(i) * 10,
+    //   Math.cos(i) * 10,
+    //   Math.cos(i) * 100,
+    //   Math.sin(i) * 100
+    // );
     // }
+    jb.pal();
     jb.map();
+    jb.pset(20, 20, 1);
+    jb.palt(5, false);
     jb.spr(2, x, y);
+    jb.pal(0, 3);
+    jb.spr(2, x + 10, y + 10);
+    jb.palt(0, true);
+    jb.spr(2, x + 20, y + 20);
     jb.fset(2, 8);
 
     jb.print(jb.fget(2, 3), x - 59, y - 59);
+    jb.print(jb.pget(10, 6), x - 59, y - 49);
+    jb.print(jb.sget(10, 6), x - 59, y - 39);
   },
 
   update: function (dt) {

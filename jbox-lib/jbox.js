@@ -359,6 +359,8 @@ jb._screenSize = 128;
 
 jb._transparent = [false, false, false, false, false, true];
 
+jb._dataSet = [0];
+
 jb.BTN_LEFT = 0;
 jb.BTN_UP = 1;
 jb.BTN_RIGHT = 2;
@@ -517,7 +519,7 @@ jb.camera = function (x, y) {
 };
 
 jb.spr = function (spriteIndex, _x, _y) {
-  const sprite = this._data.sprites.slice(
+  const sprite = this._data[this._dataSet].sprites.slice(
     spriteIndex * 64,
     (spriteIndex + 1) * 64
   );
@@ -687,7 +689,10 @@ jb.map = function (_x, _y) {
     const screenX = i % 8;
     const screenY = Math.floor(i / 8);
 
-    const screenData = this._data.map.slice(i * 256, (i + 1) * 256);
+    const screenData = this._data[this._dataSet].map.slice(
+      i * 256,
+      (i + 1) * 256
+    );
 
     screenData.forEach((cell, cellIndex) => {
       const cellMapX = cellIndex % 16;
@@ -722,9 +727,63 @@ jb.mget = function (_x, _y) {
   const screenNumber = screenY * 8 + screenX;
   const cellNumber = cellY * 16 + cellX;
 
-  const mapTile = this._data.map[screenNumber * 256 + cellNumber];
+  const mapTile = this._data[this._dataSet].map[
+    screenNumber * 256 + cellNumber
+  ];
 
   return mapTile != undefined ? mapTile : "";
+};
+
+jb.mset = function (_x, _y, sprite) {
+  if (_x < 0 || _y < 0 || _x > 128 || _y > 128 || sprite < 0 || sprite > 63) {
+    return;
+  }
+
+  const screenX = Math.floor(_x / 16);
+  const screenY = Math.floor(_y / 16);
+  const cellX = Math.floor(_x % 16);
+  const cellY = Math.floor(_y % 16);
+
+  const screenNumber = screenY * 8 + screenX;
+  const cellNumber = cellY * 16 + cellX;
+
+  this._data[this._dataSet].map[screenNumber * 256 + cellNumber] = sprite;
+};
+
+jb.sget = function (_x, _y) {
+  if (_x < 0 || _y < 0 || _x > 63 || _y > 63) {
+    return "";
+  }
+
+  const screenX = Math.floor(_x / 8);
+  const screenY = Math.floor(_y / 8);
+  const cellX = Math.floor(_x % 8);
+  const cellY = Math.floor(_y % 8);
+
+  const spriteNumber = screenY * 8 + screenX;
+  const pixelNumber = cellY * 8 + cellX;
+
+  const col = this._data[this._dataSet].sprites[
+    spriteNumber * 64 + pixelNumber
+  ];
+
+  return col != undefined ? col : "";
+};
+
+jb.sset = function (_x, _y, col = this._drawColor) {
+  if (_x < 0 || _y < 0 || _x > 63 || _y > 63 || col < 0 || col > 5) {
+    return;
+  }
+
+  const screenX = Math.floor(_x / 8);
+  const screenY = Math.floor(_y / 8);
+  const cellX = Math.floor(_x % 8);
+  const cellY = Math.floor(_y % 8);
+
+  const spriteNumber = screenY * 8 + screenX;
+  const pixelNumber = cellY * 8 + cellX;
+
+  this._data[this._dataSet].sprites[spriteNumber * 64 + pixelNumber] = col;
 };
 
 jb.fget = function (sprite, flag) {
@@ -737,9 +796,9 @@ jb.fget = function (sprite, flag) {
     return null;
   }
   if (flag == undefined) {
-    return this._data.spriteFlags[sprite];
+    return this._data[this._dataSet].spriteFlags[sprite];
   } else {
-    return !!(this._data.spriteFlags[sprite] & (1 << flag));
+    return !!(this._data[this._dataSet].spriteFlags[sprite] & (1 << flag));
   }
 };
 
@@ -754,15 +813,34 @@ jb.fset = function (sprite, flagOrBitfield, value) {
   }
 
   if (value == null) {
-    this._data.spriteFlags[sprite] = flagOrBitfield;
+    this._data[this._dataSet].spriteFlags[sprite] = flagOrBitfield;
   } else {
     const mask = 1 << flagOrBitfield;
 
     if (value) {
-      this._data.spriteFlags[sprite] |= mask;
+      this._data[this._dataSet].spriteFlags[sprite] |= mask;
     } else {
-      this._data.spriteFlags[sprite] &= ~mask;
+      this._data[this._dataSet].spriteFlags[sprite] &= ~mask;
     }
+  }
+};
+
+jb.pget = function (x, y) {
+  if (this._isOnScreen(x, y)) {
+    const pIndex = (y * 128 + x) * 4;
+    const [r, g, b] = this._screenBuffer.data.slice(pIndex, pIndex + 4);
+
+    return this._rgbPal.findIndex(
+      col => col[0] === r && col[1] === g && col[2] === b
+    );
+  } else {
+    return "";
+  }
+};
+
+jb.pset = function (x, y, col = this._drawColor) {
+  if (col >= 0 && col <= 5) {
+    this._updatePixel(x, y, ...this._rgbPal[col]);
   }
 };
 
@@ -773,6 +851,7 @@ jb._resetKeys = function () {
 };
 
 jb._onKeyPressed = function (e) {
+  this._actx.resume();
   switch (e.key.toLowerCase()) {
     case "arrowup":
       this._keys.up.pressed = true;
@@ -968,8 +1047,10 @@ jb._soundEffect = function (
   volume.gain.value = volumeValue;
 
   // mitigate irritating pop
-  console.log(isSafari());
-  // cutOff(volume);
+  // console.log(isSafari());
+  if (!isSafari()) {
+    cutOff(volume);
+  }
 
   //Apply effects
   switch (fx) {
@@ -1065,7 +1146,7 @@ jb._soundEffect = function (
 };
 
 jb.sfx = function (soundIndex) {
-  const sound = this._data.sfx[soundIndex];
+  const sound = this._data[this._dataSet].sfx[soundIndex];
   const interval = sound.tempo / 64;
   for (let i = 0; i < sound.samples.length; i++) {
     const sample = sound.samples[i];
@@ -1106,7 +1187,10 @@ jb._createImageData = function () {
   this._images = [];
 
   for (let spr = 0; spr < 64; spr++) {
-    const sprite = this._data.sprites.slice(spr * 64, (spr + 1) * 64);
+    const sprite = this._data[this._dataSet].sprites.slice(
+      spr * 64,
+      (spr + 1) * 64
+    );
 
     const imgArray = sprite
       .map(pixel => {
@@ -1122,7 +1206,7 @@ jb._createImageData = function () {
   }
 };
 
-jb._palt = function (col, transp) {
+jb.palt = function (col, transp) {
   if (col == null && transp == null) {
     this._transparent = [false, false, false, false, false, true];
     return;
@@ -1133,6 +1217,45 @@ jb._palt = function (col, transp) {
   }
 };
 
-// jb._pal = function(col1, col2 ) {
-//   this._rgbPal[col1] = this._rgbPal[col2];
-// }
+jb.pal = function (col1, col2) {
+  if (col2 == null) {
+    if (col1 == null) {
+      this._rgbPal = [...this._origPal];
+      this._transparent = [false, false, false, false, false, true];
+    }
+    return;
+  }
+
+  this._rgbPal[col1] = this._origPal[col2];
+};
+
+jb.__5w17Chd474537 = function (newData) {
+  if (newData > 0 && newData < this._data.length) {
+    this._dataSet = newData;
+  }
+};
+
+jb.line = function (_x0, _y0, _x1, _y1, col = this._drawColor) {
+  let { x: x0, y: y0 } = this._adjustCoords(_x0, _y0);
+  let { x: x1, y: y1 } = this._adjustCoords(_x1, _y1);
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+
+  while (true) {
+    this._updatePixel(x0, y0, ...this._rgbPal[col]); // Do what you need to for this
+
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      x0 += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      y0 += sy;
+    }
+  }
+};
