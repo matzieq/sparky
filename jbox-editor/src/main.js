@@ -80,6 +80,7 @@ const sections = document.querySelectorAll(".section");
 const controlButtons = document.querySelectorAll(".control-button");
 const downloadButton = document.querySelector(".download-button");
 const clearButton = document.querySelector(".clear-button");
+const fileInput = document.querySelector("#import-data-file");
 
 /**
  * SPRITE EDIT STUFF
@@ -119,6 +120,7 @@ const tempoDisplay = document.querySelector(".tempo-number");
 const tempoIncButton = document.querySelector(".tempo-increase");
 const tempoDecButton = document.querySelector(".tempo-decrease");
 const waveTypeButtons = document.querySelectorAll(".wave-button");
+const octaveButtons = document.querySelectorAll(".octave-select-button");
 const fxButtons = document.querySelectorAll(".fx-button");
 const soundCanvas = document.querySelector(".sound-paint");
 const soundCanvasCtx = soundCanvas.getContext("2d");
@@ -216,6 +218,30 @@ function attachControlListeners() {
       appEditState.mode = toggleMode;
     })
   );
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      const reader = new FileReader();
+
+      reader.addEventListener("load", () => {
+        try {
+          const index = reader.result.indexOf('{"sprites');
+
+          const json = reader.result.slice(index);
+          console.log(json.slice(0, json.length - 2));
+          const res = JSON.parse(json.slice(0, json.length - 2));
+
+          if (res.sprites && res.map && res.sfx && res.spriteFlags) {
+            console.log("YESSS!");
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      reader.readAsText(fileInput.files[0]);
+    }
+  });
 }
 
 function attachSpriteEditListeners() {
@@ -289,6 +315,10 @@ function attachSfxListeners() {
 
   fxButtons.forEach(button => {
     button.addEventListener("click", changeFx);
+  });
+
+  octaveButtons.forEach(button => {
+    button.addEventListener("click", changeOctave);
   });
 
   deselectButton.addEventListener("click", deselectSample);
@@ -496,7 +526,8 @@ function updateSfxPaint() {
   soundCanvasCtx.fillRect(0, 0, soundCanvas.width, soundCanvas.height);
 
   sound.samples.forEach((sample, index) => {
-    soundCanvasCtx.fillStyle = palette[selectedSample === index ? 1 : 2];
+    soundCanvasCtx.fillStyle =
+      palette[selectedSample === index ? 0 : 2 - (sample.oct + 1) / 2];
     const x = index * 16;
     const w = 14;
 
@@ -538,6 +569,24 @@ function updateSfxPaint() {
         button.classList.add(buttonActiveClass);
       }
     } else if (sample && button.dataset.type === sample.fx) {
+      button.classList.add(buttonActiveClass);
+    }
+  });
+
+  octaveButtons.forEach(button => {
+    button.classList.remove(buttonActiveClass);
+
+    const commonOctave = areSameOctaves();
+    console.log(commonOctave);
+    if (sample) {
+      console.log(parseInt(button.dataset.octave) === sample.oct);
+    }
+    if (!sample && commonOctave != null) {
+      if (parseInt(button.dataset.octave) === commonOctave) {
+        button.classList.add(buttonActiveClass);
+      }
+    } else if (sample && parseInt(button.dataset.octave) === sample.oct) {
+      console.log("BANG");
       button.classList.add(buttonActiveClass);
     }
   });
@@ -662,14 +711,14 @@ function playSound(soundIndex) {
 
     soundEffect(
       actx,
-      getFrequency(sample.dist, sample.oct - 3),
+      getFrequency(sample.dist, sample.oct),
       sample.type,
       sample.volume / 40,
       interval * i,
       interval * repeat,
       sample.fx,
       sound.samples[i + 1]
-        ? getFrequency(sound.samples[i + 1].dist, sound.samples[i + 1].oct - 3)
+        ? getFrequency(sound.samples[i + 1].dist, sound.samples[i + 1].oct)
         : null
     );
     i += repeat - 1;
@@ -684,4 +733,28 @@ function toggleNextSound() {
 function togglePrevSound() {
   appEditState.selectedSound = (appEditState.selectedSound - 1) % 32;
   updateSfxPaint();
+}
+
+function areSameOctaves() {
+  const { samples } = getSelectedSound();
+  const { oct } = samples[0];
+  if (samples.every(sample => sample.oct === oct)) {
+    return oct;
+  } else {
+    return null;
+  }
+}
+
+function changeOctave(e) {
+  const { selectedSound, selectedSample } = appEditState;
+  const sound = appDataState.sfx[selectedSound];
+  if (selectedSample == undefined) {
+    sound.samples.forEach(
+      sample => (sample.oct = parseInt(e.target.dataset.octave))
+    );
+  } else {
+    sound.samples[selectedSample].oct = parseInt(e.target.dataset.octave);
+  }
+  updateSfxPaint();
+  saveData();
 }

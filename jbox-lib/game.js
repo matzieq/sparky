@@ -30,12 +30,13 @@ jb.init({
     jb.pal();
     jb.map();
     jb.pset(20, 20, 1);
-    jb.palt(5, false);
-    jb.spr(2, x, y);
+    // jb.palt(5, false);
+    jb.spr(1, x + 30, y + 30, 1, 1, true, false);
+    jb.spr(9, x, y, 1.4, 1.6);
     jb.pal(0, 3);
-    jb.spr(2, x + 10, y + 10);
+    jb.spr(1, x + 10, y + 10);
     jb.palt(0, true);
-    jb.spr(2, x + 20, y + 20);
+    jb.spr(1, x + 20, y + 20);
     jb.fset(2, 8);
 
     jb.print(jb.fget(2, 3), x - 59, y - 59);

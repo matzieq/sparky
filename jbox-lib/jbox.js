@@ -518,7 +518,53 @@ jb.camera = function (x, y) {
   this._cam = { x, y };
 };
 
-jb.spr = function (spriteIndex, _x, _y) {
+jb.spr = function (
+  spriteIndex,
+  x,
+  y,
+  w = 1,
+  h = 1,
+  flipX = false,
+  flipY = false
+) {
+  if (w < 0 || h < 0) {
+    return;
+  }
+
+  for (let height = 0; height < h; height++) {
+    for (let width = 0; width < w; width++) {
+      let clipX = 7;
+      let clipY = 7;
+
+      if (h - height <= 1) {
+        clipY = Math.round(7 * (h - height));
+      }
+      if (w - width <= 1) {
+        clipX = Math.round(7 * (w - width));
+      }
+
+      this._spr(
+        spriteIndex + width + height * 8,
+        x + width * 8,
+        y + height * 8,
+        flipX,
+        flipY,
+        clipX,
+        clipY
+      );
+    }
+  }
+};
+
+jb._spr = function (
+  spriteIndex,
+  _x,
+  _y,
+  flipX = false,
+  flipY = false,
+  clipX = 7,
+  clipY = 7
+) {
   const sprite = this._data[this._dataSet].sprites.slice(
     spriteIndex * 64,
     (spriteIndex + 1) * 64
@@ -529,12 +575,24 @@ jb.spr = function (spriteIndex, _x, _y) {
   // Do not render anything off screen
   if (x > -8 && x < this._screenSize && y > -8 && y < this._screenSize) {
     sprite.forEach((cell, cellIndex) => {
-      const pixelX = x + (cellIndex % 8);
-      const pixelY = y + Math.floor(cellIndex / 8);
+      let pixelX = cellIndex % 8;
+      let pixelY = Math.floor(cellIndex / 8);
+
+      if (pixelX > clipX || pixelY > clipY) {
+        return;
+      }
+
+      if (flipX) {
+        pixelX = 7 - pixelX;
+      }
+
+      if (flipY) {
+        pixelY = 7 - pixelY;
+      }
 
       if (!this._transparent[cell]) {
         // const [r, g, b] = this._rgbPal[cell];
-        this._updatePixel(pixelX, pixelY, ...this._rgbPal[cell]);
+        this._updatePixel(x + pixelX, y + pixelY, ...this._rgbPal[cell]);
       }
     });
   }
@@ -1169,14 +1227,17 @@ jb.sfx = function (soundIndex) {
     }
     this._soundEffect(
       this._actx,
-      this._getFrequency(sample.dist),
+      this._getFrequency(sample.dist, sample.oct),
       sample.type,
       sample.volume / 40,
       interval * i,
       interval * repeat,
       sample.fx,
       sound.samples[i + 1]
-        ? this._getFrequency(sound.samples[i + 1].dist)
+        ? this._getFrequency(
+            sound.samples[i + 1].dist,
+            sound.samples[i + 1].oct
+          )
         : null
     );
     i += repeat - 1;
