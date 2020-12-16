@@ -31,14 +31,14 @@ jb.init({
     // );
     // }
     jb.pal();
-    jb.map(mapX, mapY, x / 2, y / 2, 15, 4);
+    jb.map();
     jb.pset(20, 20, 1);
     jb.palt(5, false);
-    jb.spr(1, x + 30, y + 30, 1, 1, true, false);
+    jb.spr(1, x, y, 1, 1, true, false);
 
-    jb.pal(0, 3);
+    jb.pal(2, 0);
     jb.spr(1, x + 10, y + 10);
-    jb.palt(0, true);
+    jb.palt(3, true);
     jb.spr(1, x + 20, y + 20);
     jb.fset(2, 8);
 

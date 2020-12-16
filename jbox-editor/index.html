@@ -8,6 +8,18 @@
   </head>
   <body>
     <header class="header">
+      <ul class="btn-group">
+        <li>
+          <button class="btn btn-active clear-button">NEW</button>
+        </li>
+        <li>
+          <label for="import-data-file" class="btn btn-active">OPEN</label>
+          <input type="file" id="import-data-file" value="LOAD" />
+        </li>
+        <li>
+          <button class="btn btn-active download-button">SAVE</button>
+        </li>
+      </ul>
       <ul>
         <li>
           <button class="btn btn-active control-button" data-activate="SPRITE">
@@ -243,11 +255,15 @@
           <button class="btn btn-active play-button">PLAY</button>
         </div>
       </section>
-      <section class="btn-group">
-        <button class="btn btn-active download-button">DOWNLOAD</button>
-        <button class="btn btn-active clear-button">CLEAR</button>
-        <input type="file" id="import-data-file" value="LOAD" />
-      </section>
+      <div class="modal-overlay">
+        <div class="modal">
+          <p class="modal-text">MODAL TEXT</p>
+          <div class="btn-group modal-buttons">
+            <div class="btn btn-active">OK</div>
+            <div class="btn btn-danger">CANCEL</div>
+          </div>
+        </div>
+      </div>
     </main>
     <script src="src/main.js"></script>
   </body>

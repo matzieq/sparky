@@ -228,11 +228,28 @@ function attachControlListeners() {
           const index = reader.result.indexOf('{"sprites');
 
           const json = reader.result.slice(index);
-          console.log(json.slice(0, json.length - 2));
           const res = JSON.parse(json.slice(0, json.length - 2));
 
           if (res.sprites && res.map && res.sfx && res.spriteFlags) {
-            console.log("YESSS!");
+            const sprites = deflatten(res.sprites, 64).map(sprite =>
+              deflatten(sprite, 8)
+            );
+
+            const tileMap = deflatten(res.map, 256).map(screen =>
+              deflatten(screen, 16)
+            );
+
+            const newData = {
+              sprites,
+              tileMap,
+              spriteFlags: res.spriteFlags,
+              sfx: res.sfx,
+            };
+
+            appDataState = newData;
+            fileInput.value = "";
+            initDrawingSurfaces();
+            saveData();
           }
         } catch (err) {
           console.error(err);
@@ -242,6 +259,16 @@ function attachControlListeners() {
       reader.readAsText(fileInput.files[0]);
     }
   });
+}
+
+function deflatten(arr, chunk) {
+  const res = [];
+
+  for (let i = 0; i < arr.length; i += chunk) {
+    res.push(arr.slice(i, i + chunk));
+  }
+
+  return res;
 }
 
 function attachSpriteEditListeners() {
@@ -577,16 +604,12 @@ function updateSfxPaint() {
     button.classList.remove(buttonActiveClass);
 
     const commonOctave = areSameOctaves();
-    console.log(commonOctave);
-    if (sample) {
-      console.log(parseInt(button.dataset.octave) === sample.oct);
-    }
+
     if (!sample && commonOctave != null) {
       if (parseInt(button.dataset.octave) === commonOctave) {
         button.classList.add(buttonActiveClass);
       }
     } else if (sample && parseInt(button.dataset.octave) === sample.oct) {
-      console.log("BANG");
       button.classList.add(buttonActiveClass);
     }
   });

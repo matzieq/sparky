@@ -22,7 +22,7 @@ body {
 }
 
 .header li {
-  margin-right: 20px;
+  /* margin-right: 20px; */
 }
 
 .header a {
@@ -74,12 +74,28 @@ body {
   color: #8b6d9c;
   padding: 10px;
   cursor: pointer;
-  min-width: 200px;
+  min-width: 220px;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn.control-button {
+  border: none;
+  padding: 10px 30px;
 }
 
 .btn.btn-active {
   border: 1px solid #fbf5ef;
   color: #fbf5ef;
+}
+
+.btn.control-button:hover {
+  border: none;
+}
+
+.btn.btn-active.control-button {
+  border: none;
+  border-bottom: 1px solid #fbf5ef;
 }
 
 .btn.btn-small {
@@ -188,4 +204,12 @@ canvas {
   display: flex;
   align-items: center;
   margin-top: 5px;
+}
+
+#import-data-file {
+  display: none;
+}
+
+.modal-overlay {
+  display: none;
 }
