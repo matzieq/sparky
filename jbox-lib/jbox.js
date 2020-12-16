@@ -739,9 +739,8 @@ jb._isOnScreen = function (x, y) {
   return x >= 0 && x < this._screenSize && y >= 0 && y < this._screenSize;
 };
 
-jb.map = function (_x, _y) {
-  const x = Math.floor(_x || 0) * 8;
-  const y = Math.floor(_y || 0) * 8;
+jb.map = function (celX = 0, celY = 0, x = 0, y = 0, w = 127, h = 127) {
+  // const { x, y } = this._adjustCoords(_x, _y);
 
   for (let i = 0; i < 64; i++) {
     const screenX = i % 8;
@@ -755,8 +754,18 @@ jb.map = function (_x, _y) {
     screenData.forEach((cell, cellIndex) => {
       const cellMapX = cellIndex % 16;
       const cellMapY = Math.floor(cellIndex / 16);
-      const spriteX = x + screenX * 128 + cellMapX * 8;
-      const spriteY = y + screenY * 128 + cellMapY * 8;
+
+      if (
+        cellMapX + screenX * 16 < celX ||
+        cellMapY + screenY * 16 < celY ||
+        cellMapX + screenX * 16 > w - celY ||
+        cellMapY + screenY * 16 > h - celY
+      ) {
+        return;
+      }
+
+      const spriteX = x + screenX * 128 + cellMapX * 8 - celX * 8;
+      const spriteY = y + screenY * 128 + cellMapY * 8 - celY * 8;
 
       if (
         spriteX - this._cam.x < -8 ||
@@ -1290,7 +1299,7 @@ jb.pal = function (col1, col2) {
   this._rgbPal[col1] = this._origPal[col2];
 };
 
-jb.__5w17Chd474537 = function (newData) {
+jb.__switchDataset = function (newData) {
   if (newData > 0 && newData < this._data.length) {
     this._dataSet = newData;
   }

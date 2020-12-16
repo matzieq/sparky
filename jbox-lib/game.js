@@ -3,10 +3,13 @@ let y = 0;
 let spd = 60;
 let r = 50;
 
+let mapX = 0;
+let mapY = 0;
+
 jb.init({
   init: function () {
-    jb.mset(0, 0, 2);
-    jb.sset(10, 6, 1);
+    jb.mset(0, 0, 1);
+
     console.log(jb.mget(0, 0));
     console.log(jb.mget(0, 1));
     console.log(jb.fget(jb.mget(0, 1)));
@@ -17,9 +20,9 @@ jb.init({
     jb.cls();
     jb.camera(x - 64, y - 64);
     // jb.color(4);
-    // for (let i = 0; i < 1000; i++) {
-    // jb.rect(20, 10, 40, 60);
-    // jb.circ(x, y, 20);
+    // for (let i = 0; i < 100; i++) {
+    //   jb.rect(20, 10, 40, 60);
+    //   jb.circ(x, y, 20);
     // jb.line(
     //   Math.sin(i) * 10,
     //   Math.cos(i) * 10,
@@ -28,11 +31,11 @@ jb.init({
     // );
     // }
     jb.pal();
-    jb.map();
+    jb.map(mapX, mapY, x / 2, y / 2, 15, 4);
     jb.pset(20, 20, 1);
-    // jb.palt(5, false);
+    jb.palt(5, false);
     jb.spr(1, x + 30, y + 30, 1, 1, true, false);
-    jb.spr(9, x, y, 1.4, 1.6);
+
     jb.pal(0, 3);
     jb.spr(1, x + 10, y + 10);
     jb.palt(0, true);
@@ -63,7 +66,14 @@ jb.init({
     }
 
     if (jb.btnp(jb.BTN_A)) {
-      jb.sfx(0);
+      // jb.sfx(0);
+      mapX++;
+      mapY++;
+    }
+
+    if (jb.btnp(jb.BTN_B)) {
+      mapX--;
+      mapY--;
     }
 
     if (jb.btn(jb.BTN_UP)) {
