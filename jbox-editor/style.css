@@ -212,4 +212,15 @@ canvas {
 
 .modal-overlay {
   display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(39, 39, 68, 0.3);
+  z-index: 1000;
+}
+
+.modal-overlay.active {
+  display: block;
 }

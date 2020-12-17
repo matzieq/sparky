@@ -71,6 +71,47 @@ const appEditState = {
   selectedColor: 5,
 };
 
+const modal = {
+  init() {
+    this.ref = document.querySelector(".modal-overlay");
+    this.innerRef = document.querySelector(".modal-text");
+    this.ref.addEventListener("click", () => this.onClose());
+  },
+  open(config) {
+    if (config.onOkcayClick) {
+      this.onOkcayClick = config.onOkcayClick;
+    }
+
+    if (config.text) {
+      this.innerRef.textContent = config.text;
+    }
+
+    if (config.onCancelClick) {
+      this.onCancelClick = config.onCancelClick;
+    }
+    this.ref.classList.add("active");
+  },
+  close() {
+    this.ref.classList.remove("active");
+  },
+
+  onOk() {
+    if (typeof this.onOkcayClick === "function") {
+      this.onOkcayClick();
+    }
+    this.close();
+  },
+  onCancel() {
+    if (typeof this.onCancelClick === "function") {
+      this.onCancelClick();
+    }
+    this.close();
+  },
+};
+
+modal.onOkcayClick = function () {};
+modal.onCancelClick = function () {};
+
 //#region selectors
 /**
  * CONTROL STUFF
@@ -136,6 +177,7 @@ const soundDisplay = document.querySelector(".sound-number");
  */
 
 init();
+modal.init();
 
 /**
  * FUNCTIONS
@@ -201,6 +243,8 @@ function attachControlListeners() {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     appDataState = initialDataState;
     initDrawingSurfaces();
+
+    modal.open();
   });
 
   controlButtons.forEach(button =>
