@@ -21,13 +21,23 @@ body {
   list-style-type: none;
 }
 
-.header li {
-  /* margin-right: 20px; */
-}
-
 .header a {
   color: #fbf5ef;
   text-decoration: none;
+}
+
+.header .btn-group.project-buttons {
+  margin-bottom: 100px;
+}
+
+.header .btn.btn-file {
+  color: #fbf5ef;
+  border: none;
+  border-bottom: 1px solid #fbf5ef;
+}
+
+.header .btn-group.project-buttons li:not(:last-of-type) {
+  border-right: 1px solid #fbf5ef;
 }
 
 .app-content {
@@ -46,11 +56,11 @@ body {
 
 .draw-grid {
   display: inline-flex;
-  /* grid-template-columns: repeat(8, 40px); */
   flex-wrap: wrap;
   width: 322px;
   border: 1px solid #fbf5ef;
   margin-right: 40px;
+  cursor: crosshair;
 }
 
 .draw-grid-cell {
@@ -108,6 +118,11 @@ body {
   color: #fbf5ef;
 }
 
+.btn-danger {
+  border: 1px solid #f2d3ab;
+  color: #f2d3ab;
+}
+
 .tools-wrapper {
   display: flex;
   align-items: flex-start;
@@ -120,6 +135,10 @@ body {
   border: 1px solid #fbf5ef;
   cursor: pointer;
   margin-right: 20px;
+}
+
+.color-button {
+  cursor: pointer;
 }
 
 .color-button,
@@ -145,8 +164,17 @@ body {
   display: inline-block;
 }
 
+.sprite-preview {
+  cursor: pointer;
+}
+
+.sprite-number-wrapper {
+  margin: 10px 0 20px;
+}
+
 canvas {
   border: 1px solid #fbf5ef;
+  cursor: pointer;
 }
 
 .tilemap-edit-wrapper {
@@ -158,6 +186,10 @@ canvas {
 .tilemap-drawing-wrapper {
   margin-right: 40px;
   margin-bottom: 40px;
+}
+
+.map-drawing-surface {
+  cursor: crosshair;
 }
 
 .sprite-list-wrapper {
@@ -181,6 +213,7 @@ canvas {
 
 .sound-paint {
   margin-right: 20px;
+  cursor: crosshair;
 }
 
 .item-set-label {
@@ -217,10 +250,30 @@ canvas {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(39, 39, 68, 0.3);
+  background-color: rgba(39, 39, 68, 0.7);
   z-index: 1000;
 }
 
 .modal-overlay.active {
   display: block;
+}
+
+.modal {
+  margin: 20vh auto 0;
+  width: 600px;
+  height: 400px;
+  background-color: #494d7e;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 70px 70px 30px;
+}
+
+.modal .btn-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal .modal-text {
+  font-size: 2rem;
 }

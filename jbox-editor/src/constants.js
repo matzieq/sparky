@@ -33,3 +33,7 @@ export const middleC = 440 * Math.pow(Math.pow(2, 1 / 12), -9);
 export const buttonActiveClass = "btn-active";
 
 export const sectionActiveClass = "section-active";
+
+export const PEN = "PEN";
+
+export const FILL = "FILL";

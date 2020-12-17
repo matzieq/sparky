@@ -10,8 +10,10 @@ import {
   SOUND_SAMPLE_COUNT,
   buttonActiveClass,
   sectionActiveClass,
+  PEN,
+  FILL,
 } from "./constants";
-import { palette } from "./data";
+import { palette, initialDataState, randomdataState } from "./data";
 import {
   getMousePos,
   updateSprite,
@@ -19,43 +21,11 @@ import {
   drawSprite,
   soundEffect,
   getFrequency,
+  floodFill,
 } from "./utils";
 import { fixAudioContext } from "./audioContextPatch";
 
 fixAudioContext(window);
-
-const initialDataState = {
-  sprites: Array(MAX_SPRITES)
-    .fill(0)
-    .map(() =>
-      Array(TILE_SIZE)
-        .fill(0)
-        .map(() => Array(TILE_SIZE).fill(5))
-    ),
-  spriteFlags: Array(MAX_SPRITES).fill(0),
-  tileMap: Array(MAX_TILEMAP_SCREENS)
-    .fill(0)
-    .map(() =>
-      Array(TILEMAP_SIZE)
-        .fill(0)
-        .map(() => Array(TILEMAP_SIZE).fill(0))
-    ),
-
-  sfx: Array(MAX_SOUNDS)
-    .fill(0)
-    .map(() => ({
-      tempo: 1,
-      samples: Array(SOUND_SAMPLE_COUNT)
-        .fill(0)
-        .map(() => ({
-          type: "sine",
-          dist: 0,
-          oct: 3,
-          volume: 0,
-          fx: null,
-        })),
-    })),
-};
 
 let appDataState = initialDataState;
 
@@ -69,25 +39,33 @@ const appEditState = {
   selectedSample: null,
   isDrawing: false,
   selectedColor: 5,
+  drawingMode: PEN,
 };
 
 const modal = {
   init() {
     this.ref = document.querySelector(".modal-overlay");
     this.innerRef = document.querySelector(".modal-text");
-    this.ref.addEventListener("click", () => this.onClose());
+    this.ref.addEventListener("click", () => this.close());
+    this.okButton = this.ref.querySelector(".ok-button");
+    this.cancelButton = this.ref.querySelector(".cancel-button");
+
+    this.okButton.addEventListener("click", e => this.onOk(e));
+    this.cancelButton.addEventListener("click", e => this.onCancel(e));
   },
   open(config) {
-    if (config.onOkcayClick) {
-      this.onOkcayClick = config.onOkcayClick;
-    }
+    if (config) {
+      if (config.onOkcayClick) {
+        this.onOkcayClick = config.onOkcayClick;
+      }
 
-    if (config.text) {
-      this.innerRef.textContent = config.text;
-    }
+      if (config.text) {
+        this.innerRef.textContent = config.text;
+      }
 
-    if (config.onCancelClick) {
-      this.onCancelClick = config.onCancelClick;
+      if (config.onCancelClick) {
+        this.onCancelClick = config.onCancelClick;
+      }
     }
     this.ref.classList.add("active");
   },
@@ -95,13 +73,15 @@ const modal = {
     this.ref.classList.remove("active");
   },
 
-  onOk() {
+  onOk(e) {
+    e.stopPropagation();
     if (typeof this.onOkcayClick === "function") {
       this.onOkcayClick();
     }
     this.close();
   },
-  onCancel() {
+  onCancel(e) {
+    e.stopPropagation();
     if (typeof this.onCancelClick === "function") {
       this.onCancelClick();
     }
@@ -122,6 +102,7 @@ const controlButtons = document.querySelectorAll(".control-button");
 const downloadButton = document.querySelector(".download-button");
 const clearButton = document.querySelector(".clear-button");
 const fileInput = document.querySelector("#import-data-file");
+const toolButtons = document.querySelectorAll(".tool-button");
 
 /**
  * SPRITE EDIT STUFF
@@ -240,11 +221,17 @@ function attachControlListeners() {
   });
 
   clearButton.addEventListener("click", () => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-    appDataState = initialDataState;
-    initDrawingSurfaces();
+    modal.open({
+      onOkcayClick: () => {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        appDataState = initialDataState;
+        initDrawingSurfaces();
+        saveData();
+      },
 
-    modal.open();
+      text:
+        "This will erase all current project data and start a new project from scratch.",
+    });
   });
 
   controlButtons.forEach(button =>
@@ -263,46 +250,74 @@ function attachControlListeners() {
     })
   );
 
+  toolButtons.forEach(button => {
+    button.addEventListener("click", e => {
+      if (e.target.dataset.mode) {
+        appEditState.drawingMode = e.target.dataset.mode.toUpperCase();
+
+        toolButtons.forEach(button => {
+          button.classList.remove(buttonActiveClass);
+
+          if (button.dataset.mode.toUpperCase() === appEditState.drawingMode) {
+            button.classList.add(buttonActiveClass);
+          }
+        });
+      }
+    });
+  });
+
   fileInput.addEventListener("change", () => {
     if (fileInput.files.length > 0) {
       const reader = new FileReader();
 
       reader.addEventListener("load", () => {
-        try {
-          const index = reader.result.indexOf('{"sprites');
+        modal.open({
+          text:
+            "This will erase current project data and replace it with new data",
+          onOkcayClick: () => {
+            try {
+              const index = reader.result.indexOf('{"sprites');
 
-          const json = reader.result.slice(index);
-          const res = JSON.parse(json.slice(0, json.length - 2));
+              const json = reader.result.slice(index);
+              const res = JSON.parse(json.slice(0, json.length - 2));
 
-          if (res.sprites && res.map && res.sfx && res.spriteFlags) {
-            const sprites = deflatten(res.sprites, 64).map(sprite =>
-              deflatten(sprite, 8)
-            );
+              if (res.sprites && res.map && res.sfx && res.spriteFlags) {
+                const sprites = deflatten(res.sprites, 64).map(sprite =>
+                  deflatten(sprite, 8)
+                );
 
-            const tileMap = deflatten(res.map, 256).map(screen =>
-              deflatten(screen, 16)
-            );
+                const tileMap = deflatten(res.map, 256).map(screen =>
+                  deflatten(screen, 16)
+                );
 
-            const newData = {
-              sprites,
-              tileMap,
-              spriteFlags: res.spriteFlags,
-              sfx: res.sfx,
-            };
+                const newData = {
+                  sprites,
+                  tileMap,
+                  spriteFlags: res.spriteFlags,
+                  sfx: res.sfx,
+                };
 
-            appDataState = newData;
+                appDataState = newData;
+                fileInput.value = "";
+                initDrawingSurfaces();
+                saveData();
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          },
+
+          onCancelClick: () => {
             fileInput.value = "";
-            initDrawingSurfaces();
-            saveData();
-          }
-        } catch (err) {
-          console.error(err);
-        }
+          },
+        });
       });
 
       reader.readAsText(fileInput.files[0]);
     }
   });
+
+  window.addEventListener("keydown", handleKeys);
 }
 
 function deflatten(arr, chunk) {
@@ -426,12 +441,19 @@ function changeSelectedSprite(newSprite) {
 }
 
 function enableDrawing(cell) {
-  const { isDrawing, selectedColor, selectedImage } = appEditState;
+  const { isDrawing, drawingMode, selectedColor, selectedImage } = appEditState;
   if (isDrawing) {
     const cellNumber = Array.from(cells).indexOf(cell);
     const x = cellNumber % 8;
     const y = Math.floor(cellNumber / 8);
-    getSelectedSprite()[y][x] = selectedColor;
+
+    const sprite = getSelectedSprite();
+
+    if (drawingMode === PEN) {
+      sprite[y][x] = selectedColor;
+    } else if (drawingMode === FILL) {
+      floodFill(sprite, y, x, selectedColor);
+    }
 
     updateSprite(selectedImage, spritePreviewCtx, appDataState);
     updateDrawingSurface(selectedImage);
@@ -480,7 +502,12 @@ function updateDrawingSurface(spriteIndex) {
 }
 
 function drawOnMap({ x, y }) {
-  const { isDrawing, selectedImage, selectedScreen } = appEditState;
+  const {
+    isDrawing,
+    drawingMode,
+    selectedImage,
+    selectedScreen,
+  } = appEditState;
   if (isDrawing) {
     const mapX = Math.floor(x / 32);
     const mapY = Math.floor(y / 32);
@@ -488,9 +515,15 @@ function drawOnMap({ x, y }) {
     if (mapX >= 0 && mapX < 16 && mapY >= 0 && mapY < 16) {
       const mapCell = appDataState.tileMap[selectedScreen][mapY][mapX];
       if (mapCell != selectedImage) {
-        appDataState.tileMap[selectedScreen][mapY][mapX] = selectedImage;
-        const sprite = getSelectedSprite();
-        drawSprite(sprite, mapDrawingSurfaceCtx, mapX * 8, mapY * 8);
+        const selectedMap = appDataState.tileMap[selectedScreen];
+        if (drawingMode === PEN) {
+          selectedMap[mapY][mapX] = selectedImage;
+          const sprite = getSelectedSprite();
+          drawSprite(sprite, mapDrawingSurfaceCtx, mapX * 8, mapY * 8);
+        } else if (drawingMode === FILL) {
+          floodFill(selectedMap, mapY, mapX, selectedImage);
+          updateMap();
+        }
         saveData();
       }
     }
@@ -588,6 +621,7 @@ function updateSfxPaint() {
   const { selectedSound, selectedSample } = appEditState;
 
   const sound = appDataState.sfx[selectedSound];
+
   const sample = sound.samples[selectedSample];
 
   tempoDisplay.textContent = sound.tempo;
@@ -798,7 +832,8 @@ function toggleNextSound() {
 }
 
 function togglePrevSound() {
-  appEditState.selectedSound = (appEditState.selectedSound - 1) % 32;
+  appEditState.selectedSound =
+    appEditState.selectedSound > 0 ? (appEditState.selectedSound - 1) % 32 : 31;
   updateSfxPaint();
 }
 
@@ -824,4 +859,39 @@ function changeOctave(e) {
   }
   updateSfxPaint();
   saveData();
+}
+
+function handleKeys(e) {
+  if (parseInt(e.key) > 0 && parseInt(e.key) <= 6) {
+    appEditState.selectedColor = parseInt(e.key) - 1;
+    currentColor.style.backgroundColor = palette[parseInt(e.key) - 1];
+  }
+  switch (e.key.toLowerCase()) {
+    case "p":
+      appEditState.drawingMode = PEN;
+
+      toolButtons.forEach(button => {
+        button.classList.remove(buttonActiveClass);
+
+        if (button.dataset.mode.toUpperCase() === PEN) {
+          button.classList.add(buttonActiveClass);
+        }
+      });
+
+      break;
+    case "f":
+      appEditState.drawingMode = FILL;
+
+      toolButtons.forEach(button => {
+        button.classList.remove(buttonActiveClass);
+
+        if (button.dataset.mode.toUpperCase() === FILL) {
+          button.classList.add(buttonActiveClass);
+        }
+      });
+
+      break;
+    default:
+      break;
+  }
 }
