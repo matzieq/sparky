@@ -1,90 +1,61 @@
-let x = 0;
-let y = 0;
-let spd = 60;
-let r = 50;
-
-let mapX = 0;
-let mapY = 0;
+const player = { x: 64, y: 64 };
 
 jb.init({
   init: function () {
-    jb.mset(0, 0, 1);
-
-    console.log(jb.mget(0, 0));
-    console.log(jb.mget(0, 1));
-    console.log(jb.fget(jb.mget(0, 1)));
-    console.log(jb.fget(jb.mget(0, 1), 0));
-    console.log(jb.fget(jb.mget(0, 1), 1));
+    for (let x = 0; x < 128; x++) {
+      for (let y = 0; y < 128; y++) {
+        if (jb.mget(x, y) === 1) {
+          player.x = x * 8;
+          player.y = y * 8;
+          jb.mset(x, y, 3);
+        }
+      }
+    }
   },
   draw: function () {
     jb.cls();
-    jb.camera(x - 64, y - 64);
-    // jb.color(4);
-    // for (let i = 0; i < 100; i++) {
-    //   jb.rect(20, 10, 40, 60);
-    //   jb.circ(x, y, 20);
-    // jb.line(
-    //   Math.sin(i) * 10,
-    //   Math.cos(i) * 10,
-    //   Math.cos(i) * 100,
-    //   Math.sin(i) * 100
-    // );
-    // }
-    jb.pal();
+    jb.camera(Math.max(0, player.x - 64), Math.max(0, player.y - 64));
+
     jb.map();
-    jb.pset(20, 20, 1);
-    jb.palt(5, false);
-    jb.spr(1, x, y, 1, 1, true, false);
 
-    jb.pal(2, 0);
-    jb.spr(1, x + 10, y + 10);
-    jb.palt(3, true);
-    jb.spr(1, x + 20, y + 20);
-    jb.fset(2, 8);
-
-    jb.print(jb.fget(2, 3), x - 59, y - 59);
-    jb.print(jb.pget(10, 6), x - 59, y - 49);
-    jb.print(jb.sget(10, 6), x - 59, y - 39);
+    jb.spr(1, player.x, player.y);
   },
 
   update: function (dt) {
-    if (jb.btn(jb.BTN_RIGHT)) {
-      x += spd * dt;
+    const dir = { x: 0, y: 0 };
+    if (jb.btnp(jb.BTN_RIGHT)) {
+      dir.x = 1;
     }
-    if (jb.btn(jb.BTN_LEFT)) {
-      x -= spd * dt;
-    }
-
-    if (jb.btn(jb.BTN_UP)) {
-      y -= spd * dt;
-      r++;
+    if (jb.btnp(jb.BTN_LEFT)) {
+      dir.x = -1;
     }
 
-    if (jb.btn(jb.BTN_DOWN)) {
-      y += spd * dt;
-      r--;
+    if (jb.btnp(jb.BTN_UP)) {
+      dir.y = -1;
     }
 
-    if (jb.btnp(jb.BTN_A)) {
-      // jb.sfx(0);
-      mapX++;
-      mapY++;
+    if (jb.btnp(jb.BTN_DOWN)) {
+      dir.y = 1;
     }
 
-    if (jb.btnp(jb.BTN_B)) {
-      mapX--;
-      mapY--;
-    }
-
-    if (jb.btn(jb.BTN_UP)) {
-      r++;
-    }
-
-    if (jb.btn(jb.BTN_DOWN)) {
-      r--;
-    }
+    movePlayer(player, dir);
   },
 });
+
+function movePlayer(player, dir) {
+  if (dir.x === 0 && dir.y === 0) {
+    return;
+  }
+  const newX = player.x + dir.x * 8;
+  const newY = player.y + dir.y * 8;
+  if (jb.fget(jb.mget(newX / 8, newY / 8), 0)) {
+    jb.sfx(0);
+  } else {
+    player.x = newX;
+    player.y = newY;
+    jb.sfx(1);
+  }
+}
 
 // var bufferSize = 4096;
 // var brownNoise = (function () {
