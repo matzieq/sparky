@@ -42,7 +42,7 @@ export const initialDataState = {
         .map(() => ({
           type: "sine",
           dist: 0,
-          oct: 3,
+          oct: 0,
           volume: 0,
           fx: null,
         })),

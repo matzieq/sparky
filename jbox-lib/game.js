@@ -1,46 +1,46 @@
 const player = { x: 64, y: 64 };
 
-jb.init({
-  init: function () {
-    for (let x = 0; x < 128; x++) {
-      for (let y = 0; y < 128; y++) {
-        if (jb.mget(x, y) === 1) {
-          player.x = x * 8;
-          player.y = y * 8;
-          jb.mset(x, y, 3);
-        }
+function init() {
+  jb.palt(5, false);
+  for (let x = 0; x < 128; x++) {
+    for (let y = 0; y < 128; y++) {
+      if (jb.mget(x, y) === 1) {
+        player.x = x * 8;
+        player.y = y * 8;
+        jb.mset(x, y, 3);
       }
     }
-  },
-  draw: function () {
-    jb.cls();
-    jb.camera(Math.max(0, player.x - 64), Math.max(0, player.y - 64));
+  }
+}
 
-    jb.map();
+function draw() {
+  jb.cls();
+  jb.camera(Math.max(0, player.x - 64), Math.max(0, player.y - 64));
 
-    jb.spr(1, player.x, player.y);
-  },
+  jb.map();
 
-  update: function (dt) {
-    const dir = { x: 0, y: 0 };
-    if (jb.btnp(jb.BTN_RIGHT)) {
-      dir.x = 1;
-    }
-    if (jb.btnp(jb.BTN_LEFT)) {
-      dir.x = -1;
-    }
+  jb.spr(1, player.x, player.y);
+}
 
-    if (jb.btnp(jb.BTN_UP)) {
-      dir.y = -1;
-    }
+function update(dt) {
+  const dir = { x: 0, y: 0 };
+  if (jb.btnp(jb.BTN_RIGHT)) {
+    dir.x = 1;
+  }
+  if (jb.btnp(jb.BTN_LEFT)) {
+    dir.x = -1;
+  }
 
-    if (jb.btnp(jb.BTN_DOWN)) {
-      dir.y = 1;
-    }
+  if (jb.btnp(jb.BTN_UP)) {
+    dir.y = -1;
+  }
 
-    movePlayer(player, dir);
-  },
-});
+  if (jb.btnp(jb.BTN_DOWN)) {
+    dir.y = 1;
+  }
+
+  movePlayer(player, dir);
+}
 
 function movePlayer(player, dir) {
   if (dir.x === 0 && dir.y === 0) {
@@ -78,3 +78,9 @@ function movePlayer(player, dir) {
 // // jb.map();
 // console.log(data.sprites.slice(64 * 8, 64 * 26));
 // document.body.innerHTML = data.sprites.slice(64 * 8, 64 * 26).toString();
+
+jb.init({
+  init,
+  draw,
+  update,
+});

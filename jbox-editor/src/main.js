@@ -177,7 +177,8 @@ function init() {
 
   document.addEventListener("mousedown", e => {
     appEditState.isDrawing = true;
-    if (Array.from(cells).indexOf(e.target) > 0) {
+    console.log(e.target);
+    if (Array.from(cells).indexOf(e.target) >= 0) {
       enableDrawing(e.target);
     }
 
