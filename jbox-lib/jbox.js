@@ -413,6 +413,8 @@ jb._drawColor = 0;
 
 jb._screenBuffer = null;
 
+jb._gamepad = null;
+
 jb._getClearScreenData = function (col) {
   const emptyScreenData = new Uint8ClampedArray(128 * 128 * 4);
 
@@ -475,6 +477,17 @@ jb.init = function (config) {
   window.addEventListener("resize", () => this._fitToScreen());
   window.addEventListener("keydown", e => this._onKeyPressed(e));
   window.addEventListener("keyup", e => this._onKeyReleased(e));
+
+  window.addEventListener("gamepadconnected", function (e) {
+    console.log(
+      "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+      e.gamepad.index,
+      e.gamepad.id,
+      e.gamepad.buttons.length,
+      e.gamepad.axes.length
+    );
+    console.log(e.gamepad);
+  });
   window.requestAnimationFrame(t => this._step(t));
 
   if (typeof config.init === "function") {
@@ -500,11 +513,99 @@ jb._step = function (timestamp) {
 
   this._frameRate = 1000 / _dt;
   this._lastFrame = timestamp;
+  this._readGamepadState();
   this._update(_dt / 1000);
   this._draw();
   this._jbctx.putImageData(this._screenBuffer, 0, 0);
 
   window.requestAnimationFrame(t => this._step(t));
+};
+
+jb._readGamepadState = function () {
+  const gamepads = navigator.getGamepads
+    ? navigator.getGamepads()
+    : navigator.webkitGetGamepads
+    ? navigator.webkitGetGamepads
+    : [];
+
+  if (!gamepads || !gamepads[0]) {
+    return;
+  }
+
+  const gp = gamepads[0];
+
+  const up = 12;
+  const down = 13;
+  const left = 14;
+  const right = 15;
+  const a = 0;
+  const b = 2;
+  const sel = 8;
+  const start = 9;
+  const horiz = 0;
+  const vert = 1;
+
+  const isUp = gp.buttons[up].pressed || gp.axes[vert] < -0.5;
+  const isDown = gp.buttons[down].pressed || gp.axes[vert] > 0.5;
+  const isLeft = gp.buttons[left].pressed || gp.axes[horiz] < -0.5;
+  const isRight = gp.buttons[right].pressed || gp.axes[horiz] > 0.5;
+
+  const isA = gp.buttons[a].pressed;
+  const isB = gp.buttons[b].pressed;
+  const isSel = gp.buttons[sel].pressed;
+  const isStart = gp.buttons[start].pressed;
+
+  if (isUp) {
+    if (!this._keys.up.pressed) {
+      this._keys.up.justPressed = true;
+    }
+  }
+
+  if (isDown) {
+    if (!this._keys.down.pressed) {
+      this._keys.down.justPressed = true;
+    }
+  }
+  if (isLeft) {
+    if (!this._keys.left.pressed) {
+      this._keys.left.justPressed = true;
+    }
+  }
+  if (isRight) {
+    if (!this._keys.right.pressed) {
+      this._keys.right.justPressed = true;
+    }
+  }
+  if (isA) {
+    if (!this._keys.a.pressed) {
+      this._keys.a.justPressed = true;
+    }
+  }
+
+  if (isB) {
+    if (!this._keys.b.pressed) {
+      this._keys.b.justPressed = true;
+    }
+  }
+  if (isSel) {
+    if (!this._keys.select.pressed) {
+      this._keys.select.justPressed = true;
+    }
+  }
+  if (isStart) {
+    if (!this._keys.start.pressed) {
+      this._keys.start.justPressed = true;
+    }
+  }
+
+  this._keys.up.pressed = isUp;
+  this._keys.down.pressed = isDown;
+  this._keys.left.pressed = isLeft;
+  this._keys.right.pressed = isRight;
+  this._keys.a.pressed = isA;
+  this._keys.b.pressed = isB;
+  this._keys.select.pressed = isSel;
+  this._keys.start.pressed = isStart;
 };
 
 jb.cls = function (col) {
