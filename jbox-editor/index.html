@@ -8,35 +8,49 @@
   </head>
   <body>
     <header class="header">
-      <ul class="btn-group project-buttons">
-        <li>
-          <button class="btn btn-file clear-button">NEW</button>
-        </li>
-        <li>
-          <label for="import-data-file" class="btn btn-file">OPEN</label>
-          <input type="file" id="import-data-file" value="LOAD" />
-        </li>
-        <li>
-          <button class="btn btn-file download-button">SAVE</button>
-        </li>
-      </ul>
-      <ul>
-        <li>
-          <button class="btn btn-active control-button" data-activate="SPRITE">
-            SPRITESHEET
-          </button>
-        </li>
-        <li>
-          <button class="btn control-button" data-activate="TILEMAP">
-            TILEMAP
-          </button>
-        </li>
-        <li>
-          <button class="btn control-button" data-activate="SFX">SFX</button>
-        </li>
-      </ul>
+      <a href="/"><h1>JBox</h1></a>
+      <nav class="navbar">
+        <ul class="btn-group">
+          <li><a href="/jbox-editor/">Editor</a></li>
+          <li><a href="/docs">Documentation</a></li>
+          <li><a href="/about">About</a></li>
+        </ul>
+      </nav>
     </header>
     <main class="app-content">
+      <section class="controls">
+        <ul class="btn-group project-buttons">
+          <li>
+            <button class="btn btn-file clear-button">NEW</button>
+          </li>
+          <li>
+            <label for="import-data-file" class="btn btn-file">OPEN</label>
+            <input type="file" id="import-data-file" value="LOAD" />
+          </li>
+          <li>
+            <button class="btn btn-file download-button">SAVE</button>
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <button
+              class="btn btn-active control-button"
+              data-activate="SPRITE"
+            >
+              SPRITESHEET
+            </button>
+          </li>
+          <li>
+            <button class="btn control-button" data-activate="TILEMAP">
+              TILEMAP
+            </button>
+          </li>
+          <li>
+            <button class="btn control-button" data-activate="SFX">SFX</button>
+          </li>
+        </ul>
+      </section>
+
       <section id="SPRITE" class="sprite-edit section section-active">
         <div class="sprite-edit-wrapper">
           <div class="draw-grid">

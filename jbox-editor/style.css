@@ -10,33 +10,56 @@ body {
   color: #fbf5ef;
 }
 
+h1 {
+  font-size: 2rem;
+}
+
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header li {
+  padding: 10px 30px;
+  font-size: 1.5rem;
+}
+
+.header li:hover {
+  color: #fbf5ef;
+  background: #c69fa5;
+}
+
+.header,
+.controls {
   max-width: 1600px;
   padding: 36px;
   margin: 0 auto;
 }
 
-.header ul {
+.header ul,
+.controls ul {
   display: flex;
   list-style-type: none;
 }
 
-.header a {
+.header a,
+.controls a {
   color: #fbf5ef;
   text-decoration: none;
 }
 
-.header .btn-group.project-buttons {
+.controls .btn-group.project-buttons {
   margin-bottom: 100px;
 }
 
-.header .btn.btn-file {
+.controls .btn.btn-file {
   color: #fbf5ef;
   border: none;
   border-bottom: 1px solid #fbf5ef;
 }
 
-.header .btn-group.project-buttons li:not(:last-of-type) {
+.controls .btn-group.project-buttons li:not(:last-of-type) {
   border-right: 1px solid #fbf5ef;
 }
 
