@@ -6,6 +6,7 @@
     <title>JBOX Documentation</title>
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="../jbox-editor/style.css" />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header class="header header-main">
@@ -20,15 +21,36 @@
     </header>
     <main class="app-content">
       <section class="info">
-        <h2 class="subheader">JBox documentation</h2>
-        <p>
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ullam
-          aliquam totam ab itaque repudiandae eos! Odit sapiente ducimus quam
-          dolor rem itaque dolorum debitis ex inventore. Voluptatum officia
-          accusantium odio. Illum, veniam ab nam eos sit atque voluptatem
-          molestiae voluptatum cumque id, aperiam eius ad, repellendus earum
-          voluptates cum repudiandae.
-        </p>
+        <h2 class="subheader">JBox API documentation</h2>
+      </section>
+      <section class="api">
+        <h3>init(config)</h3>
+
+        <p>Creates a JBox game.</p>
+        <ul>
+          <li>
+            <strong>config</strong>
+            - configuration object used by JBox to create a game loop. The
+            accepted fields are:
+            <ul>
+              <li>
+                <strong> init(null) </strong>
+                - function that runs once at the beginning of the game
+              </li>
+              <li>
+                <strong> draw(null) </strong>
+                - function that runs every frame before the screen buffer is
+                drawn to the canvas
+              </li>
+              <li>
+                <strong> update(dt) </strong>
+                - function that runs every frame after the screen buffer is
+                drawn to the canvas. The <em>dt</em> parameter is the amount of
+                time (in seconds) that elapsed since the last frame
+              </li>
+            </ul>
+          </li>
+        </ul>
       </section>
     </main>
   </body>

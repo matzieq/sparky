@@ -1,0 +1,35 @@
+section.info,
+section.api {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+section.api h3 {
+  font-size: 1.2rem;
+  margin-top: 30px;
+
+  display: inline-block;
+}
+
+section.api ul {
+  list-style-type: none;
+}
+
+section.api > p {
+  font-size: 1.2rem;
+  display: inline-block;
+}
+
+section.api > ul {
+  margin-top: 20px;
+  padding-left: 80px;
+}
+
+section.api > ul > li > ul {
+  margin-top: 20px;
+  padding-left: 40px;
+}
+
+section.api li {
+  margin-top: 10px;
+}
