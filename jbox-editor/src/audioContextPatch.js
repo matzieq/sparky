@@ -1,6 +1,6 @@
 // https://github.com/cwilso/AudioContext-MonkeyPatch/blob/gh-pages/AudioContextMonkeyPatch.js
 
-export function fixAudioContext(global, exports, perf) {
+function fixAudioContext(global, exports, perf) {
   "use strict";
 
   function fixSetTarget(param) {

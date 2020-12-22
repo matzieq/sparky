@@ -6,7 +6,7 @@ JBox is a tiny library and asset editor for equally tiny games. In the current v
 
 - <s>Map additional function parameters</s>
 - <s>Spr additional function parameters</s>
-- Loading data in editor
+- <s>Loading data in editor</s>
 - <s>Octaves in sound editor</s>
 - Downloading project template in the app
 - Documentation

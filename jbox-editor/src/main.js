@@ -1,29 +1,29 @@
-import {
-  LOCAL_STORAGE_KEY,
-  MAX_SPRITES,
-  MAX_TILEMAP_SCREENS,
-  SPRITE,
-  TILEMAP,
-  TILEMAP_SIZE,
-  TILE_SIZE,
-  MAX_SOUNDS,
-  SOUND_SAMPLE_COUNT,
-  buttonActiveClass,
-  sectionActiveClass,
-  PEN,
-  FILL,
-} from "./constants";
-import { palette, initialDataState, randomdataState } from "./data";
-import {
-  getMousePos,
-  updateSprite,
-  download,
-  drawSprite,
-  soundEffect,
-  getFrequency,
-  floodFill,
-} from "./utils";
-import { fixAudioContext } from "./audioContextPatch";
+// import {
+//   LOCAL_STORAGE_KEY,
+//   MAX_SPRITES,
+//   MAX_TILEMAP_SCREENS,
+//   SPRITE,
+//   TILEMAP,
+//   TILEMAP_SIZE,
+//   TILE_SIZE,
+//   MAX_SOUNDS,
+//   SOUND_SAMPLE_COUNT,
+//   buttonActiveClass,
+//   sectionActiveClass,
+//   PEN,
+//   FILL,
+// } from "./constants";
+// import { palette, initialDataState, randomdataState } from "./data";
+// import {
+//   getMousePos,
+//   updateSprite,
+//   download,
+//   drawSprite,
+//   soundEffect,
+//   getFrequency,
+//   floodFill,
+// } from "./utils";
+// import { fixAudioContext } from "./audioContextPatch";
 
 fixAudioContext(window);
 

@@ -1,13 +1,4 @@
-import {
-  MAX_SPRITES,
-  MAX_TILEMAP_SCREENS,
-  TILEMAP_SIZE,
-  TILE_SIZE,
-  MAX_SOUNDS,
-  SOUND_SAMPLE_COUNT,
-} from "./constants";
-
-export const palette = [
+const palette = [
   "#fbf5ef",
   "#f2d3ab",
   "#c69fa5",
@@ -16,7 +7,7 @@ export const palette = [
   "#272744",
 ];
 
-export const initialDataState = {
+const initialDataState = {
   sprites: Array(MAX_SPRITES)
     .fill(0)
     .map(() =>
@@ -48,7 +39,7 @@ export const initialDataState = {
         })),
     })),
 };
-export const randomdataState = {
+const randomdataState = {
   sprites: Array(MAX_SPRITES)
     .fill(0)
     .map(() =>

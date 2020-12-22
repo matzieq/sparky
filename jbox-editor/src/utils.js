@@ -1,7 +1,7 @@
-import { palette } from "./data";
-import { middleC } from "./constants";
+// import { palette } from "./data";
+// import { middleC } from "./constants";
 
-export function updateSprite(spriteIndex, ctx, state) {
+function updateSprite(spriteIndex, ctx, state) {
   const sprite = state.sprites[spriteIndex];
 
   const spriteRow = Math.floor(spriteIndex / 8);
@@ -9,7 +9,7 @@ export function updateSprite(spriteIndex, ctx, state) {
   drawSprite(sprite, ctx, spriteCol * 8, spriteRow * 8);
 }
 
-export function drawSprite(sprite, ctx, x, y) {
+function drawSprite(sprite, ctx, x, y) {
   sprite.forEach((row, rowIndex) =>
     row.forEach((cell, cellIndex) => {
       ctx.fillStyle = palette[cell];
@@ -18,7 +18,7 @@ export function drawSprite(sprite, ctx, x, y) {
   );
 }
 
-export function getMousePos(e, canv) {
+function getMousePos(e, canv) {
   const rect = canv.getBoundingClientRect();
 
   return {
@@ -27,7 +27,7 @@ export function getMousePos(e, canv) {
   };
 }
 
-export function download(filename, text) {
+function download(filename, text) {
   const element = document.createElement("a");
   element.setAttribute(
     "href",
@@ -43,12 +43,12 @@ export function download(filename, text) {
   document.body.removeChild(element);
 }
 
-export function getFrequency(dist, octaveDiff = 0) {
+function getFrequency(dist, octaveDiff = 0) {
   const freq = middleC * Math.pow(Math.pow(2, 1 / 12), dist);
   return freq * Math.pow(2, octaveDiff);
 }
 
-export function soundEffect(
+function soundEffect(
   actx, // audio context
   frequency, //The sound's fequency pitch in Hertz
   type, //waveform type: "sine", "triangle", "square", "sawtooth"
@@ -188,7 +188,7 @@ export function soundEffect(
   }
 }
 
-export function floodFill(image, sr, sc, newColor) {
+function floodFill(image, sr, sc, newColor) {
   const current = image[sr][sc];
 
   if (current === newColor) {
