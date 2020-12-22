@@ -68,8 +68,28 @@ section.info a {
 
 section.info img {
   width: 100%;
+  padding: 20px 0;
 }
 
 .code {
   font-family: "Courier New", Courier, monospace;
+}
+
+.footer {
+  padding: 60px;
+}
+
+nav.footer-nav {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.footer ul {
+  list-style-type: none;
+}
+
+.footer a {
+  color: #c69fa5;
 }
