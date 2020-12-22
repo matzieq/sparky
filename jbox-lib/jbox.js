@@ -478,16 +478,6 @@ jb.init = function (config) {
   window.addEventListener("keydown", e => this._onKeyPressed(e));
   window.addEventListener("keyup", e => this._onKeyReleased(e));
 
-  window.addEventListener("gamepadconnected", function (e) {
-    console.log(
-      "Gamepad connected at index %d: %s. %d buttons, %d axes.",
-      e.gamepad.index,
-      e.gamepad.id,
-      e.gamepad.buttons.length,
-      e.gamepad.axes.length
-    );
-    console.log(e.gamepad);
-  });
   window.requestAnimationFrame(t => this._step(t));
 
   if (typeof config.init === "function") {
@@ -1214,9 +1204,8 @@ jb._soundEffect = function (
   oscillator.frequency.value = frequency;
   volume.gain.value = volumeValue;
 
-  // mitigate irritating pop
-  // console.log(isSafari());
   if (!isSafari()) {
+    // mitigate irritating pop
     cutOff(volume);
   }
 
