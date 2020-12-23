@@ -15,10 +15,7 @@ function init() {
 
 function draw() {
   jb.cls();
-  jb.camera(Math.max(0, player.x - 64), Math.max(0, player.y - 64));
-
   jb.map();
-
   jb.spr(1, player.x, player.y);
 }
 

@@ -75,6 +75,16 @@ section.info img {
   font-family: "Courier New", Courier, monospace;
 }
 
+section.info .image-wrapper {
+  display: flex;
+}
+
+section.info .image-wrapper img {
+  width: 50%;
+  object-fit: contain;
+  padding: 20px;
+}
+
 .footer {
   padding: 60px;
 }
