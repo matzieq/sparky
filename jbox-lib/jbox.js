@@ -415,11 +415,11 @@ jb._screenBuffer = null;
 
 jb._gamepad = null;
 
-jb._getClearScreenData = function (col) {
+jb._getClearScreenData = function (col = 5) {
   const emptyScreenData = new Uint8ClampedArray(128 * 128 * 4);
 
   for (let i = 0; i < 128 * 128 * 4; i += 4) {
-    const [r, g, b] = this._rgbPal[col != undefined ? col : 5];
+    const [r, g, b] = this._rgbPal[col];
     emptyScreenData[i] = r;
     emptyScreenData[i + 1] = g;
     emptyScreenData[i + 2] = b;
@@ -605,7 +605,7 @@ jb.cls = function (col) {
   }
 };
 
-jb.camera = function (x, y) {
+jb.camera = function (x = 0, y = 0) {
   this._cam = { x, y };
 };
 
@@ -702,7 +702,7 @@ jb._updatePixel = function (x, y, r, g, b) {
   }
 };
 
-jb.color = function (col) {
+jb.color = function (col = 0) {
   if (col >= 0 && col < this._rgbPal.length) {
     this._drawColor = col;
   }
@@ -1405,7 +1405,7 @@ jb.line = function (_x0, _y0, _x1, _y1, col = this._drawColor) {
   let err = dx - dy;
 
   while (true) {
-    this._updatePixel(x0, y0, ...this._rgbPal[col]); // Do what you need to for this
+    this._updatePixel(x0, y0, ...this._rgbPal[col]);
 
     if (x0 === x1 && y0 === y1) break;
     const e2 = 2 * err;

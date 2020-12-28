@@ -71,7 +71,8 @@ section.info img {
   padding: 20px 0;
 }
 
-.code {
+.code,
+code {
   font-family: "Courier New", Courier, monospace;
 }
 
