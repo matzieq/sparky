@@ -30,7 +30,8 @@
         <h2 class="subheader">JBox API documentation</h2>
       </section>
       <section class="api">
-        <h3>init(config)</h3>
+        <h3>Basics</h3>
+        <h4>init(config)</h4>
 
         <p>Creates a JBox game.</p>
         <ul>
@@ -57,6 +58,24 @@
             </ul>
           </li>
         </ul>
+        <h3>Graphics</h3>
+        <h4>pget(x, y) <br />pset(x, y, [c])</h4>
+        <p>
+          Returns or sets the (c)olor of the pixel at coordinates x and y. If
+          you don't specify color, the current draw color is used.
+        </p>
+        <h4>sget(x, y) <br />sset(x, y, [c])</h4>
+        <p>
+          Returns or sets the (c)olor of the pixel at coordinates x and y of the
+          spritesheet. If you don't specify color, the current draw color is
+          used.
+        </p>
+        <h4>fget(sprite, flagNumber) <br />fset(sprite, flagNumber, [c])</h4>
+        <p>
+          Returns or sets the (c)olor of the pixel at coordinates x and y of the
+          spritesheet. If you don't specify color, the current draw color is
+          used.
+        </p>
       </section>
     </main>
   </body>

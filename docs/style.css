@@ -5,6 +5,11 @@ section.api {
 }
 
 section.api h3 {
+  font-size: 1.3rem;
+  margin-top: 40px;
+}
+
+section.api h4 {
   font-size: 1.2rem;
   margin-top: 30px;
 
