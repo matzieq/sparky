@@ -30,6 +30,25 @@
         <h2 class="subheader">JBox API documentation</h2>
       </section>
       <section class="api">
+        <h3>Index</h3>
+        <ul class="api-index">
+          <li><a class="code" href="#f-init">init</a></li>
+          <li><a class="code" href="#f-pget">pget</a></li>
+          <li><a class="code" href="#f-pget">pset</a></li>
+          <li><a class="code" href="#f-sget">sget</a></li>
+          <li><a class="code" href="#f-sget">sset</a></li>
+          <li><a class="code" href="#f-fget">fget</a></li>
+          <li><a class="code" href="#f-fget">fset</a></li>
+          <li><a class="code" href="#f-print">print</a></li>
+          <li><a href="#f-color" class="code">color</a></li>
+          <li><a href="#f-cls" class="code">cls</a></li>
+          <li><a href="#f-camera" class="code">camera</a></li>
+          <li><a href="#f-circ" class="code">circ</a></li>
+          <li><a href="#f-circ" class="code">circfill</a></li>
+          <li><a href="#f-line" class="code">line</a></li>
+          <li><a href="#f-rect" class="code">rect</a></li>
+          <li><a href="#f-rect" class="code">rectfill</a></li>
+        </ul>
         <h3>General information</h3>
         <ol>
           <li>
@@ -38,9 +57,14 @@
             something more advanced.
           </li>
           <li>
-            In all drawing operations, if the color is optional, the operation
-            will use the draw color set by the color function (the default is 0,
-            or the brightest yellowish white).
+            In all drawing operations where the color is optional, if you leave
+            it out the operation will use the draw color set by the color
+            function (the default is 0, or the brightest yellowish white).
+          </li>
+          <li>
+            The line and rectangle operations follow Pico-8's style of taking
+            two sets of coordinates instead of one set plus width and height in
+            order to make code more interchangeable between the two.
           </li>
           <li>
             The api is very small and mainly concerns graphics, sound and input.
@@ -56,26 +80,26 @@
         </ol>
 
         <h3>Basics</h3>
-        <h4>init(config)</h4>
+        <h4 class="code" id="f-init">init(config)</h4>
 
         <p>Creates a JBox game.</p>
         <ul>
           <li>
-            <strong>config</strong>
+            <strong class="code">config</strong>
             - configuration object used by JBox to create a game loop. The
             accepted fields are:
             <ul>
               <li>
-                <strong> init(null) </strong>
+                <strong class="code"> init() </strong>
                 - function that runs once at the beginning of the game
               </li>
               <li>
-                <strong> draw(null) </strong>
+                <strong class="code"> draw() </strong>
                 - function that runs every frame before the screen buffer is
                 drawn to the canvas
               </li>
               <li>
-                <strong> update(dt) </strong>
+                <strong class="code"> update(dt) </strong>
                 - function that runs every frame after the screen buffer is
                 drawn to the canvas. The <code>dt</code> parameter is the amount
                 of time (in seconds) that elapsed since the last frame
@@ -84,46 +108,63 @@
           </li>
         </ul>
         <h3>Graphics</h3>
-        <h4>pget(x, y) <br />pset(x, y, [c])</h4>
+        <h4 class="code" id="f-pget">pget(x, y) <br />pset(x, y, [c])</h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
-          <code>x, y</code>. If you don't specify color, the current draw color
+          <code>x,y</code>. If you don't specify color, the current draw color
           is used.
         </p>
-        <h4>sget(x, y) <br />sset(x, y, [c])</h4>
+        <h4 class="code" id="f-sget">sget(x, y) <br />sset(x, y, [c])</h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
-          <code>x, y</code> of the spritesheet. If you don't specify color, the
+          <code>x,y</code> of the spritesheet. If you don't specify color, the
           current draw color is used.
         </p>
-        <h4>fget(sprite, flagNumber) <br />fset(sprite, flagNumber, [c])</h4>
+        <h4 class="code" id="f-fget">
+          fget(sprite, flagNumber) <br />fset(sprite, flagNumber, [c])
+        </h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
-          <code>x, y</code> of the spritesheet. If you don't specify color, the
+          <code>x,y</code> of the spritesheet. If you don't specify color, the
           current draw color is used.
         </p>
-        <h4>print(str, x, y, [c])</h4>
+        <h4 class="code" id="f-print">print(str, x, y, [c])</h4>
         <p>
-          Prints the string <code>str</code> to coordinates <code>x, y</code> in
+          Prints the string <code>str</code> to coordinates <code>x,y</code> in
           color <code>c</code> (or current draw color if that is not specified).
           JBox has no concept of "cursor", therefore you must always provide
           coordinates to draw text. All characters in JBox's font are three
           pixels wide and five pixels tall.
         </p>
-        <h4>color(c = 0)</h4>
+        <h4 class="code" id="f-color">color(c = 0)</h4>
         <p>Sets current draw color to <code>c</code>.</p>
-        <h4>cls(c = 5)</h4>
+        <h4 class="code" id="f-cls">cls(c = 5)</h4>
         <p>Fills the entire screen buffer with color <code>c</code>.</p>
-        <h4>camera(x = 0, y = 0)</h4>
+        <h4 class="code" id="f-camera">camera(x = 0, y = 0)</h4>
         <p>
           Offsets all subsequent drawing operations by <code>-x</code>,
           <code>-y</code>.
         </p>
-        <h4>circ(x, y, r, [c])<br />circfill(x, y, r, [c])</h4>
+        <h4 class="code" id="f-circ">
+          circ(x, y, r, [c])<br />circfill(x, y, r, [c])
+        </h4>
         <p>
           Draws a circle (or filled circle) with its center at coordinates
-          <code>x, y</code> and radius <code>r</code>, in color
+          <code>x,y</code> and radius <code>r</code>, in color
           <code>c</code> (or current draw color).
+        </p>
+        <h4 class="code" id="f-line">line(x0, y0, x1, y1, [c])</h4>
+        <p>
+          Draws a line from <code>x0,y0</code> to <code>x1,y1</code> in color
+          <code>c</code> (or current draw color).
+        </p>
+        <h4 class="code" id="f-rect">
+          rect(x0, y0, x1, y1, [c])<br />rectfill(x0, y0, x1, y1, [c])
+        </h4>
+        <p>
+          Draws a rectangle (or filled rectangle) with its top left corner at
+          <code>x0,y0</code> and bottom right corner at <code>x1,y1</code>, in
+          color <code>c</code> (or current draw color).
         </p>
       </section>
     </main>

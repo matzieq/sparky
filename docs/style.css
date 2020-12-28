@@ -29,6 +29,16 @@ section.api > ul {
   margin-top: 20px;
   padding-left: 80px;
 }
+
+section.api > ul.api-index {
+  display: flex;
+  padding-left: 20px;
+  flex-wrap: wrap;
+}
+
+section.api > ul a {
+  color: #f2d3ab;
+}
 section.api > ol {
   font-size: 1.2rem;
   margin-top: 20px;
@@ -42,4 +52,9 @@ section.api > ul > li > ul {
 
 section.api li {
   margin-top: 10px;
+}
+
+section.api > ul.api-index li {
+  margin-top: 0;
+  width: 110px;
 }
