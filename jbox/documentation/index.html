@@ -53,7 +53,9 @@
           <li><a href="#f-spr" class="code">spr</a></li>
           <li><a href="#f-btn" class="code">btn</a></li>
           <li><a href="#f-btnp" class="code">btnp</a></li>
-          <li><a href="#f-sfx" class="code">btnp</a></li>
+          <li><a href="#f-sfx" class="code">sfx</a></li>
+          <li><a href="#f-mget" class="code">mget</a></li>
+          <li><a href="#f-mget" class="code">mset</a></li>
           <li><a href="#f-map" class="code">map</a></li>
         </ul>
         <h3>General information</h3>
@@ -252,16 +254,79 @@
           from the top left corner of the screen.
         </p>
       </section>
+      <section class="faq">
+        <h3>FAQ</h3>
+        <ul>
+          <li>
+            <h4 class="question">Isn't there a music api?</h4>
+            <p class="answer">
+              I haven't figured out how to make a tracker yet. I'm still very
+              new to the web audio API, and it's pretty scary. That said, it's
+              just Javascript. You can play any sound or music file you like
+              using whatever technique or library you want. I might extend JBox
+              with the capability to do just that, but I think I'd rather learn
+              how to make a tracker instead.
+            </p>
+          </li>
+          <li>
+            <h4 class="question">Why only six colors?</h4>
+            <p class="answer">
+              I like this specific palette. And I also suffer from protanopia,
+              so I like limited sets of colors which I can easily tell from one
+              another.
+            </p>
+          </li>
+          <li>
+            <h4 class="question">
+              What about peeks and pokes and other stuff that's in Pico-8 and
+              isn't here?
+            </h4>
+            <p class="answer">
+              This is not a fantasy console. It's just a Javascript library
+              that's fantasy-console-like. There's no underlying machine
+              architecture and no fake chips powering this thing. I wanted a
+              simple way to rapidly create tiny games in Javascript and I liked
+              the Pico-8 API. And this is the result.
+            </p>
+          </li>
+          <li>
+            <h4 class="question">
+              It's horrible and I hate it! What can I do?
+            </h4>
+            <p class="answer">Go somewhere else.</p>
+          </li>
+          <li>
+            <h4 class="question">It's awesome and I love it! What can I do?</h4>
+            <p class="answer">
+              Make an awesome game, upload it somewhere and tell me about it!
+              You can hit me up on twitter via the link in the footer.
+            </p>
+          </li>
+          <li>
+            <h4 class="question">Any future plans?</h4>
+            <p class="answer">
+              Make a standalone editor in electron so that you can use if
+              offline. Get a music tracker running. Figure out how to include a
+              code editor within the app so that you don't even have to go
+              outside. Figure out how to spit out an electron app with the game,
+              so you can export to desktop, as well as the web. This will
+              probably take years, but it's something to shoot for.
+            </p>
+          </li>
+        </ul>
+      </section>
     </main>
     <footer class="footer">
       <nav class="footer-nav">
         <ul>
+          <li><a href="/">President's homepage</a></li>
           <li>
             <a href="https://github.com/matzieq/JBOX">Source on github</a>
           </li>
           <li>
             <a href="https://twitter.com/matzieq">Twitter</a>
           </li>
+          <li><a href="https://matzieq.itch.io">Itch</a></li>
         </ul>
       </nav>
     </footer>
