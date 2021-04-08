@@ -166,13 +166,29 @@
           <code>x0,y0</code> and bottom right corner at <code>x1,y1</code>, in
           color <code>c</code> (or current draw color).
         </p>
+        <h4 class="code" id="f-rect">pal(c0, c1)</h4>
+        <p>
+          Swaps color <code>c0</code> in the current palette with
+          <code>c1</code> from original palette. If called with no arguments,
+          resets the palette to the initial state, including transparency data.
+        </p>
+        <h4 class="code" id="f-rect">palt(col, val)</h4>
+        <p>
+          Sets the transparency flag of color <code>col</code> in the current
+          palette to <code>val</code> (a boolean value). If called with no
+          arguments, resets the transparency data to initial state (i.e. color
+          number 5 is transparent).
+        </p>
         <h4 class="code" id="f-rect">
-          rect(x0, y0, x1, y1, [c])<br />rectfill(x0, y0, x1, y1, [c])
+          spr(index, x, y, w = 1, h = 1, flipX = false, flipY = false)
         </h4>
         <p>
-          Draws a rectangle (or filled rectangle) with its top left corner at
-          <code>x0,y0</code> and bottom right corner at <code>x1,y1</code>, in
-          color <code>c</code> (or current draw color).
+          Draws sprite at <code>index</code> to coordinates <code>x, y</code>.
+          If <code>w</code> and/or <code>h</code> are specified, it will draw a
+          region from the spritesheet which is <code>w</code> sprites wide and
+          <code>h</code> sprites high. The <code>flipX, flipY</code> flags will
+          flip the drawn image horizontally or vertically (respectively) when
+          set to <code>true</code>.
         </p>
         <h4 class="code" id="f-map">
           map(celX = 0, celY = 0, x = 0, y = 0, w = 127, h = 127)
