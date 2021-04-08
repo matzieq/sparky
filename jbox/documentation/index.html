@@ -48,6 +48,13 @@
           <li><a href="#f-line" class="code">line</a></li>
           <li><a href="#f-rect" class="code">rect</a></li>
           <li><a href="#f-rect" class="code">rectfill</a></li>
+          <li><a href="#f-pal" class="code">pal</a></li>
+          <li><a href="#f-palt" class="code">palt</a></li>
+          <li><a href="#f-spr" class="code">spr</a></li>
+          <li><a href="#f-btn" class="code">btn</a></li>
+          <li><a href="#f-btnp" class="code">btnp</a></li>
+          <li><a href="#f-sfx" class="code">btnp</a></li>
+          <li><a href="#f-map" class="code">map</a></li>
         </ul>
         <h3>General information</h3>
         <ol>
@@ -108,20 +115,25 @@
           </li>
         </ul>
         <h3>Graphics</h3>
-        <h4 class="code" id="f-pget">pget(x, y) <br />pset(x, y, [c])</h4>
+        <h4 class="code" id="f-pget">
+          pget(x, y) -> number <br />pset(x, y, [c])
+        </h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
           <code>x,y</code>. If you don't specify color, the current draw color
           is used.
         </p>
-        <h4 class="code" id="f-sget">sget(x, y) <br />sset(x, y, [c])</h4>
+        <h4 class="code" id="f-sget">
+          sget(x, y) -> number <br />sset(x, y, [c])
+        </h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
           <code>x,y</code> of the spritesheet. If you don't specify color, the
           current draw color is used.
         </p>
         <h4 class="code" id="f-fget">
-          fget(sprite, flagNumber) <br />fset(sprite, flagNumber, [c])
+          fget(sprite, flagNumber) -> boolean <br />fset(sprite, flagNumber,
+          [c])
         </h4>
         <p>
           Returns or sets the color <code>c</code> of the pixel at coordinates
@@ -166,20 +178,20 @@
           <code>x0,y0</code> and bottom right corner at <code>x1,y1</code>, in
           color <code>c</code> (or current draw color).
         </p>
-        <h4 class="code" id="f-rect">pal(c0, c1)</h4>
+        <h4 class="code" id="f-pal">pal(c0, c1)</h4>
         <p>
           Swaps color <code>c0</code> in the current palette with
           <code>c1</code> from original palette. If called with no arguments,
           resets the palette to the initial state, including transparency data.
         </p>
-        <h4 class="code" id="f-rect">palt(col, val)</h4>
+        <h4 class="code" id="f-palt">palt(col, val)</h4>
         <p>
           Sets the transparency flag of color <code>col</code> in the current
           palette to <code>val</code> (a boolean value). If called with no
           arguments, resets the transparency data to initial state (i.e. color
           number 5 is transparent).
         </p>
-        <h4 class="code" id="f-rect">
+        <h4 class="code" id="f-spr">
           spr(index, x, y, w = 1, h = 1, flipX = false, flipY = false)
         </h4>
         <p>
@@ -189,6 +201,45 @@
           <code>h</code> sprites high. The <code>flipX, flipY</code> flags will
           flip the drawn image horizontally or vertically (respectively) when
           set to <code>true</code>.
+        </p>
+
+        <h3>Input</h3>
+        <h4 class="code" id="f-btn">btn(key) -> boolean</h4>
+        <p>
+          Returns the boolean state of button no. <code>key</code>. Instead of
+          using numbers, you can pass one of predefined constants provided by
+          JBox:
+
+          <span><code>BTN_LEFT = 0</code></span>
+          <span><code>BTN_UP = 1</code></span>
+          <span><code>BTN_RIGHT = 2</code></span>
+          <span><code>BTN_DOWN = 3</code></span>
+          <span><code>BTN_A = 4</code></span>
+          <span><code>BTN_B = 5</code></span>
+          <span><code>BTN_START = 6</code></span>
+          <span><code>BTN_SELECT = 7</code></span>
+
+          Directional buttons are mapped to arrow keys, a is mapped to either z
+          or c, b is mapped to x, start is escape and select is tab. If you
+          connect a gamepad, it should also be detected and the button layout
+          should be reasonable.
+        </p>
+        <h4 class="code" id="f-btnp">btnp(key) -> boolean</h4>
+        <p>
+          Returns the state of button no. <code>key</code>, if it has just been
+          pressed. If the button is held down, it will only return true once,
+          and then return false on subsequent frames.
+        </p>
+        <h3>Audio</h3>
+        <h4 class="code" id="f-sfx">sfx(index)</h4>
+        <p>Plays the sound no. <code>index</code>.</p>
+        <h3>Map</h3>
+        <h4 class="code" id="f-mget">
+          mget(x, y) -> number <br />mset(x, y, v)
+        </h4>
+        <p>
+          Returns or sets the sprite value <code>v</code> at map coordinates
+          <code>x,y</code>.
         </p>
         <h4 class="code" id="f-map">
           map(celX = 0, celY = 0, x = 0, y = 0, w = 127, h = 127)

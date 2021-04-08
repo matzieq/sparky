@@ -58,3 +58,10 @@ section.api > ul.api-index li {
   margin-top: 0;
   width: 110px;
 }
+
+section.api > p > span {
+  display: block;
+  margin-left: 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
