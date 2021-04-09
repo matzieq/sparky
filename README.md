@@ -153,7 +153,7 @@ Draws the map starting from cell coordinates `celX` and `celY`, at screen coordi
 
   Make a standalone editor in electron so that you can use if offline. Get a music tracker running. Figure out how to include a code editor within the app so that you don't even have to go outside. Figure out how to spit out an electron app with the game, so you can export to desktop, as well as the web. This will probably take years, but it's something to shoot for.
 
-- [President's homepage](https://matzieq.github.io)
-- [Source on github](https://github.com/matzieq/JBOX)
-- [Twitter](https://twitter.com/matzieq)
-- [Itch](https://matzieq.itch.io)
+[President's homepage](https://matzieq.github.io)
+[Source on github](https://github.com/matzieq/JBOX)
+[Twitter](https://twitter.com/matzieq)
+[Itch](https://matzieq.itch.io)
