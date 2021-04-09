@@ -38,71 +38,61 @@ Creates a JBox game.
 
 ### Graphics
 
-#### `pget(x, y) -> number`
-
-`pset(x, y, [c])`
+#### `pget(x, y) -> number, pset(x, y, [c])`
 
 Returns or sets the color `c` of the pixel at coordinates `x,y`. If you don't specify color, the current draw color is used.
 
-#### sget(x, y) -> number
-
-sset(x, y, [c])
+#### `sget(x, y) -> number, sset(x, y, [c])`
 
 Returns or sets the color `c` of the pixel at coordinates `x,y` of the spritesheet. If you don't specify color, the current draw color is used.
 
-#### fget(sprite, flagNumber) -> boolean
-
-fset(sprite, flagNumber, [c])
+#### `fget(sprite, flagNumber) -> boolean, fset(sprite, flagNumber, [c])`
 
 Returns or sets the color `c` of the pixel at coordinates `x,y` of the spritesheet. If you don't specify color, the current draw color is used.
 
-#### print(str, x, y, [c])
+#### `print(str, x, y, [c])`
 
 Prints the string `str` to coordinates `x,y` in color `c` (or current draw color if that is not specified). JBox has no concept of "cursor", therefore you must always provide coordinates to draw text. All characters in JBox's font are three pixels wide and five pixels tall.
 
-#### color(c = 0)
+#### `color(c = 0)`
 
 Sets current draw color to `c`.
 
-#### cls(c = 5)
+#### `cls(c = 5)`
 
 Fills the entire screen buffer with color `c`.
 
-#### camera(x = 0, y = 0)
+#### `camera(x = 0, y = 0)`
 
 Offsets all subsequent drawing operations by `-x`, `-y`.
 
-#### circ(x, y, r, [c])
-
-circfill(x, y, r, [c])
+#### `circ(x, y, r, [c]), circfill(x, y, r, [c])`
 
 Draws a circle (or filled circle) with its center at coordinates `x,y` and radius `r`, in color `c` (or current draw color).
 
-#### line(x0, y0, x1, y1, [c])
+#### `line(x0, y0, x1, y1, [c])`
 
 Draws a line from `x0,y0` to `x1,y1` in color `c` (or current draw color).
 
-#### rect(x0, y0, x1, y1, [c])
-
-rectfill(x0, y0, x1, y1, [c])
+#### `rect(x0, y0, x1, y1, [c]), rectfill(x0, y0, x1, y1, [c])`
 
 Draws a rectangle (or filled rectangle) with its top left corner at `x0,y0` and bottom right corner at `x1,y1`, in color `c` (or current draw color).
 
-#### pal(c0, c1)
+#### `pal(c0, c1)`
 
 Swaps color `c0` in the current palette with `c1` from original palette. If called with no arguments, resets the palette to the initial state, including transparency data.
 
-#### palt(col, val)
+#### `palt(col, val)`
 
 Sets the transparency flag of color `col` in the current palette to `val` (a boolean value). If called with no arguments, resets the transparency data to initial state (i.e. color number 5 is transparent).
 
-#### spr(index, x, y, w = 1, h = 1, flipX = false, flipY = false)
+#### `spr(index, x, y, w = 1, h = 1, flipX = false, flipY = false)`
 
 Draws sprite at `index` to coordinates `x, y`. If `w` and/or `h` are specified, it will draw a region from the spritesheet which is `w` sprites wide and `h` sprites high. The `flipX, flipY` flags will flip the drawn image horizontally or vertically (respectively) when set to `true`.
 
 ### Input
 
-#### btn(key) -> boolean
+#### `btn(key) -> boolean`
 
 Returns the boolean state of button no. `key`. Instead of using numbers, you can pass one of predefined constants provided by JBox:
 
@@ -117,25 +107,23 @@ Returns the boolean state of button no. `key`. Instead of using numbers, you can
 
 Directional buttons are mapped to arrow keys, a is mapped to either z or c, b is mapped to x, start is escape and select is tab. If you connect a gamepad, it should also be detected and the button layout should be reasonable.
 
-#### btnp(key) -> boolean
+#### `btnp(key) -> boolean`
 
 Returns the state of button no. `key`, if it has just been pressed. If the button is held down, it will only return true once, and then return false on subsequent frames.
 
 ### Audio
 
-#### sfx(index)
+#### `sfx(index)`
 
 Plays the sound no. `index`.
 
 ### Map
 
-#### mget(x, y) -> number
-
-mset(x, y, v)
+#### `mget(x, y) -> number, mset(x, y, v)`
 
 Returns or sets the sprite value `v` at map coordinates `x,y`.
 
-#### map(celX = 0, celY = 0, x = 0, y = 0, w = 127, h = 127)
+#### `map(celX = 0, celY = 0, x = 0, y = 0, w = 127, h = 127)`
 
 Draws the map starting from cell coordinates `celX` and `celY`, at screen coordinates `x, y`, with the width and height in cells equal to `w` and `h`. Calling it without any parameters will draw the entire map starting from the top left corner of the screen.
 
