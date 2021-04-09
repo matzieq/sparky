@@ -17,34 +17,6 @@ JBox is a tiny library and asset editor for equally tiny games. In the current v
 
 ## API documentation
 
-### Index
-
-- [init](#f-init)
-- [pget](#f-pget)
-- [pset](#f-pget)
-- [sget](#f-sget)
-- [sset](#f-sget)
-- [fget](#f-fget)
-- [fset](#f-fget)
-- [print](#f-print)
-- [color](#f-color)
-- [cls](#f-cls)
-- [camera](#f-camera)
-- [circ](#f-circ)
-- [circfill](#f-circ)
-- [line](#f-line)
-- [rect](#f-rect)
-- [rectfill](#f-rect)
-- [pal](#f-pal)
-- [palt](#f-palt)
-- [spr](#f-spr)
-- [btn](#f-btn)
-- [btnp](#f-btnp)
-- [sfx](#f-sfx)
-- [mget](#f-mget)
-- [mset](#f-mget)
-- [map](#f-map)
-
 ### General information
 
 1.  I tried to follow the order of Pico-8 documentation, so that it's easier to compare the two and transition to Pico-8 if you want something more advanced.
@@ -55,20 +27,20 @@ JBox is a tiny library and asset editor for equally tiny games. In the current v
 
 ### Basics
 
-#### init(config)
+#### `init(config)`
 
 Creates a JBox game.
 
-- **config** - configuration object used by JBox to create a game loop. The accepted fields are:
-- **init()** - function that runs once at the beginning of the game
-- **draw()** - function that runs every frame before the screen buffer is drawn to the canvas
-- **update(dt)** - function that runs every frame after the screen buffer is drawn to the canvas. The `dt` parameter is the amount of time (in seconds) that elapsed since the last frame
+- **`config`** - configuration object used by JBox to create a game loop. The accepted fields are:
+- **`init()`** - function that runs once at the beginning of the game
+- **`draw()`** - function that runs every frame before the screen buffer is drawn to the canvas
+- **`update(dt)`** - function that runs every frame after the screen buffer is drawn to the canvas. The `dt` parameter is the amount of time (in seconds) that elapsed since the last frame
 
 ### Graphics
 
-#### pget(x, y) -> number
+#### `pget(x, y) -> number`
 
-pset(x, y, [c])
+`pset(x, y, [c])`
 
 Returns or sets the color `c` of the pixel at coordinates `x,y`. If you don't specify color, the current draw color is used.
 
