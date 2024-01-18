@@ -76,6 +76,7 @@ modal.onCancelClick = function () {};
 const sections = document.querySelectorAll(".section");
 const controlButtons = document.querySelectorAll(".control-button");
 const downloadButton = document.querySelector(".download-button");
+const exportButton = document.querySelector(".export-button");
 const clearButton = document.querySelector(".clear-button");
 const fileInput = document.querySelector("#import-data-file");
 const toolButtons = document.querySelectorAll(".tool-button");
@@ -223,6 +224,26 @@ function getMovingYouInfernalMachine() {
   initDrawingSurfaces();
 }
 
+function exportGame() {
+  const gameDataString = `var jb = jb || {}; jb._data = jb._data || []; jb._data.push(${JSON.stringify(
+    {
+      sprites: appDataState.sprites.flat(2),
+      spriteFlags: appDataState.spriteFlags,
+      map: appDataState.tileMap.flat(2),
+      sfx: appDataState.sfx,
+    }
+  )});`;
+
+  const gameCodeString = localStorage.getItem("JBOX_GAME_CODE");
+
+  console.log({ gameCodeString });
+
+  download(
+    "index.html",
+    getDownloadHtml("Game", gameDataString, gameCodeString)
+  );
+}
+
 function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
     localStorage.setItem(
@@ -249,9 +270,7 @@ function attachControlListeners() {
     );
   });
 
-  // document.querySelector(".code-input").addEventListener("blur", e => {
-  //   localStorage.setItem("GAME_CODE", e.target.value);
-  // });
+  exportButton.addEventListener("click", exportGame);
 
   clearButton.addEventListener("click", () => {
     modal.open({

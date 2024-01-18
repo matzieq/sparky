@@ -331,6 +331,35 @@ canvas {
 
 }
 
+.editor {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 18px;
+  font-weight: 400;
+  height: 340px;
+  letter-spacing: normal;
+  line-height: 20px;
+  padding: 10px;
+  tab-size: 4;
+}
+
+.editor .token.keyword {
+  color: #f2d3ab;
+}
+.editor .token.punctuation {
+  color: #c69fa5;
+}
+
+.editor .token.function {
+  color: #8b6d9c;
+}
+.editor .token.number,
+.editor .token.string {
+  color: #f2d3ab;
+}
+.editor .token.comment {
+  color: #494d7e;
+}
+
 .game-edit-wrapper {
   display: flex;
 }
