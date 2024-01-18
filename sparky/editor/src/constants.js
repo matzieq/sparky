@@ -6,7 +6,7 @@ const SPRITE = "SPRITE";
 
 const TILEMAP = "TILEMAP";
 
-const LOCAL_STORAGE_KEY = "JBOX_APP_DATA";
+const LOCAL_STORAGE_KEY = "SPARKY_APP_DATA";
 
 const TILE_SIZE = 8;
 

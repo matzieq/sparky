@@ -146,10 +146,10 @@ const jar = CodeJar(document.querySelector(".editor"), highlight);
 console.log({ jar });
 
 jar.onUpdate(code => {
-  localStorage.setItem("JBOX_GAME_CODE", code);
-  window.jb = jb || {};
-  window.cancelAnimationFrame(jb._frameRequestId);
-  window.jb._data = [
+  localStorage.setItem("SPARKY_GAME_CODE", code);
+  window.sparky = sparky || {};
+  window.cancelAnimationFrame(sparky._frameRequestId);
+  window.sparky._data = [
     {
       sprites: appDataState.sprites.flat(2),
       spriteFlags: appDataState.spriteFlags,
@@ -209,8 +209,8 @@ function getMovingYouInfernalMachine() {
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
 
-  if (localStorage.getItem("JBOX_GAME_CODE")) {
-    const gameCode = localStorage.getItem("JBOX_GAME_CODE");
+  if (localStorage.getItem("SPARKY_GAME_CODE")) {
+    const gameCode = localStorage.getItem("SPARKY_GAME_CODE");
     console.log({ gameCode });
     if (gameCode) {
       jar.updateCode(gameCode);
@@ -225,7 +225,7 @@ function getMovingYouInfernalMachine() {
 }
 
 function exportGame() {
-  const gameDataString = `var jb = jb || {}; jb._data = jb._data || []; jb._data.push(${JSON.stringify(
+  const gameDataString = `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
     {
       sprites: appDataState.sprites.flat(2),
       spriteFlags: appDataState.spriteFlags,
@@ -234,7 +234,7 @@ function exportGame() {
     }
   )});`;
 
-  const gameCodeString = localStorage.getItem("JBOX_GAME_CODE");
+  const gameCodeString = localStorage.getItem("SPARKY_GAME_CODE");
 
   console.log({ gameCodeString });
 
@@ -247,8 +247,8 @@ function exportGame() {
 function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
     localStorage.setItem(
-      "JBOX_GAME_DATA",
-      `var jb = jb || {}; jb._data = jb._data || []; jb._data.push(${JSON.stringify(
+      "SPARKY_GAME_DATA",
+      `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
         {
           sprites: appDataState.sprites.flat(2),
           spriteFlags: appDataState.spriteFlags,
@@ -259,7 +259,7 @@ function attachControlListeners() {
     );
     download(
       "data.js",
-      `var jb = jb || {}; jb._data = jb._data || []; jb._data.push(${JSON.stringify(
+      `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
         {
           sprites: appDataState.sprites.flat(2),
           spriteFlags: appDataState.spriteFlags,

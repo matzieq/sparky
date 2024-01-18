@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JBOX Editor</title>
+    <title>sparky Editor</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap"
@@ -15,13 +15,13 @@
   </head>
   <body>
     <header class="header">
-      <a href="/jbox"><h1>JBox</h1></a>
+      <a href="/sparky"><h1>sparky</h1></a>
       <nav class="navbar">
         <ul>
-          <li><a href="/jbox/editor">Editor</a></li>
-          <li><a href="/jbox/learn">Learn</a></li>
-          <li><a href="/jbox/documentation">Documentation</a></li>
-          <li><a href="/jbox/about">About</a></li>
+          <li><a href="/sparky/editor">Editor</a></li>
+          <li><a href="/sparky/learn">Learn</a></li>
+          <li><a href="/sparky/documentation">Documentation</a></li>
+          <li><a href="/sparky/about">About</a></li>
         </ul>
       </nav>
     </header>
@@ -141,7 +141,7 @@
             <canvas class="sprite-preview" width="320" height="320"></canvas>
             <div class="sprite-number-wrapper">
               <h2 class="item-set-label">SPRITE:</h2>
-              <span class="jb-number sprite-number">1</span>
+              <span class="sparky-number sprite-number">1</span>
             </div>
             <div class="page-select">
               <h2 class="item-set-label">SPRITESHEET:&nbsp;</h2>
@@ -166,35 +166,35 @@
           <div class="checkbox-group sprite-flags">
             <span class="item-set-label">FLAGS</span>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">0 </label
+              <label class="sparky-number" for="f0">0 </label
               ><input type="checkbox" name="f0" id="f0" data-flag="0" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">1 </label
+              <label class="sparky-number" for="f0">1 </label
               ><input type="checkbox" name="f1" id="f1" data-flag="1" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">2 </label
+              <label class="sparky-number" for="f0">2 </label
               ><input type="checkbox" name="f2" id="f2" data-flag="2" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">3 </label
+              <label class="sparky-number" for="f0">3 </label
               ><input type="checkbox" name="f3" id="f3" data-flag="3" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">4 </label
+              <label class="sparky-number" for="f0">4 </label
               ><input type="checkbox" name="f4" id="f4" data-flag="4" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">5 </label
+              <label class="sparky-number" for="f0">5 </label
               ><input type="checkbox" name="f5" id="f5" data-flag="5" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">6 </label
+              <label class="sparky-number" for="f0">6 </label
               ><input type="checkbox" name="f6" id="f6" data-flag="6" />
             </div>
             <div class="checkbox-wrapper">
-              <label class="jb-number" for="f0">7 </label
+              <label class="sparky-number" for="f0">7 </label
               ><input type="checkbox" name="f7" id="f7" data-flag="7" />
             </div>
           </div>
@@ -232,16 +232,16 @@
             ></canvas>
             <div class="sprite-number-wrapper">
               <h2 class="item-set-label">COORDS:</h2>
-              <span class="jb-number tilemap-x">1</span>
-              <span class="jb-number">,</span>
-              <span class="jb-number tilemap-y">1</span>
+              <span class="sparky-number tilemap-x">1</span>
+              <span class="sparky-number">,</span>
+              <span class="sparky-number tilemap-y">1</span>
             </div>
           </div>
           <div class="sprite-list-wrapper">
             <canvas class="sprite-list" width="320" height="320"></canvas>
             <div class="sprite-number-wrapper">
               <h2 class="item-set-label">SPRITE:</h2>
-              <span class="jb-number sprite-number">1</span>
+              <span class="sparky-number sprite-number">1</span>
             </div>
             <div class="page-select">
               <h2 class="item-set-label">SPRITESHEET:&nbsp;</h2>
@@ -290,7 +290,7 @@
             >
               -
             </button>
-            <span class="tempo-number jb-number">1</span>
+            <span class="tempo-number sparky-number">1</span>
             <button
               class="btn btn-active btn-small tempo-button tempo-increase"
             >
@@ -303,7 +303,7 @@
             <button class="btn btn-active btn-small sound-button sound-prev">
               -
             </button>
-            <span class="sound-number jb-number">1</span>
+            <span class="sound-number sparky-number">1</span>
             <button class="btn btn-active btn-small sound-button sound-next">
               +
             </button>
@@ -364,13 +364,13 @@
         </div>
       </div>
       <button class="btn btn-active download-button">
-        <a href="/jbox/jbox-lib/jbox-template.zip"
+        <a href="/sparky/sparky-lib/sparky-template.zip"
           >DOWNLOAD LIBRARY + GAME TEMPLATE</a
         >
       </button>
     </main>
     <script src="src/downloadComponents.js"></script>
-    <script src="../jbox-lib/jbox.js"></script>
+    <script src="../sparky-lib/sparky.js"></script>
     <script src="src/codejar.js"></script>
     <script src="src/prism.js"></script>
     <script src="src/audioContextPatch.js"></script>
