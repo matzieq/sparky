@@ -226,7 +226,7 @@ canvas {
   font-weight: 400;
 }
 
-.number {
+.jb-number {
   display: inline-block;
   padding: 0 10px;
   font-size: 1.5rem;
@@ -315,4 +315,27 @@ canvas {
 
 .modal .modal-text {
   font-size: 2rem;
+}
+
+
+.editor {
+  border: 1px solid #fbf5ef;
+  margin-right: 20px;
+  min-width: 50%;
+  font-family: monospace;
+  font-size: 1.2rem;
+}
+
+.editor * {
+  font-family: monospace;
+
+}
+
+.game-edit-wrapper {
+  display: flex;
+}
+
+.board {
+  max-width: 512px;
+  max-height: 512px;
 }
