@@ -474,7 +474,7 @@ sparky.init = function (config) {
 
   }
 
-  .control-pad, .action-buttons {
+  .control-pad, .action-buttons, .control-buttons {
     position: relative;
 
     margin: 96px 48px;
@@ -526,6 +526,14 @@ sparky.init = function (config) {
   .control.control-b {
     left: -48px;
     top: 0;
+  }
+  .control.control-select {
+    top: -28px;
+    left: 0;
+  }
+  .control.control-start {
+    top: 28px;
+    left: 0;
   }
   `;
 
@@ -619,6 +627,10 @@ sparky._initMobileControls = function () {
       <button class="control control-right">&rarr;</button>
       <button class="control control-up">&uarr;</button>
       <button class="control control-down">&darr;</button>
+    </div>
+    <div class="control-buttons">
+      <button class="control control-select">select</button>
+      <button class="control control-start">start</button>
     </div>
     <div class="action-buttons">
       <button class="control control-a">A</button>
