@@ -2,8 +2,6 @@ fixAudioContext(window);
 
 let appDataState = initialDataState;
 
-console.log("bubełe");
-
 // const spriteEdit = SpriteEdit(appDataState);
 
 const appEditState = {
@@ -16,6 +14,8 @@ const appEditState = {
   isDrawing: false,
   selectedColor: 5,
   drawingMode: PEN,
+  activeCodeTab: 0,
+  codeContents: Array(8).fill(""),
 };
 
 const modal = {
@@ -133,6 +133,9 @@ const soundDisplay = document.querySelector(".sound-number");
  * GAME CODE STUFF
  */
 
+const gameCodeTabs = document.querySelectorAll(".editor-tab");
+const gameCodeTabTooltips = document.querySelectorAll(".editor-tab .tooltip");
+
 const highlight = editor => {
   editor.innerHTML = Prism.highlight(
     editor.textContent ?? "",
@@ -142,24 +145,6 @@ const highlight = editor => {
 };
 
 const jar = CodeJar(document.querySelector(".editor"), highlight);
-
-console.log({ jar });
-
-jar.onUpdate(code => {
-  localStorage.setItem("SPARKY_GAME_CODE", code);
-  window.sparky = sparky || {};
-  window.cancelAnimationFrame(sparky._frameRequestId);
-  window.sparky._data = [
-    {
-      sprites: appDataState.sprites.flat(2),
-      spriteFlags: appDataState.spriteFlags,
-      map: appDataState.tileMap.flat(2),
-      sfx: appDataState.sfx,
-    },
-  ];
-
-  eval(code);
-});
 
 //#endregion
 
@@ -207,13 +192,16 @@ function getMovingYouInfernalMachine() {
     }
   });
 
-  const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+  const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_APP_STATE_KEY));
 
-  if (localStorage.getItem("SPARKY_GAME_CODE")) {
-    const gameCode = localStorage.getItem("SPARKY_GAME_CODE");
+  jar.onUpdate(previewGame);
+  if (localStorage.getItem(LOCAL_STORAGE_CODE_KEY)) {
+    const gameCode = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CODE_KEY));
     console.log({ gameCode });
-    if (gameCode) {
-      jar.updateCode(gameCode);
+    appEditState.codeContents = gameCode;
+
+    if (gameCode[0]) {
+      jar.updateCode(gameCode[0]);
     }
   }
 
@@ -221,20 +209,14 @@ function getMovingYouInfernalMachine() {
     appDataState = appData;
   }
 
+  previewGame(appEditState.codeContents[appEditState.activeCodeTab]);
   initDrawingSurfaces();
 }
 
 function exportGame() {
-  const gameDataString = `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
-    {
-      sprites: appDataState.sprites.flat(2),
-      spriteFlags: appDataState.spriteFlags,
-      map: appDataState.tileMap.flat(2),
-      sfx: appDataState.sfx,
-    }
-  )});`;
+  const gameDataString = stringifyGameData();
 
-  const gameCodeString = localStorage.getItem("SPARKY_GAME_CODE");
+  const gameCodeString = appEditState.codeContents.join(" ");
 
   console.log({ gameCodeString });
 
@@ -246,28 +228,8 @@ function exportGame() {
 
 function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
-    localStorage.setItem(
-      "SPARKY_GAME_DATA",
-      `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
-        {
-          sprites: appDataState.sprites.flat(2),
-          spriteFlags: appDataState.spriteFlags,
-          map: appDataState.tileMap.flat(2),
-          sfx: appDataState.sfx,
-        }
-      )});`
-    );
-    download(
-      "data.js",
-      `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
-        {
-          sprites: appDataState.sprites.flat(2),
-          spriteFlags: appDataState.spriteFlags,
-          map: appDataState.tileMap.flat(2),
-          sfx: appDataState.sfx,
-        }
-      )});`
-    );
+    localStorage.setItem(LOCAL_STORAGE_DATA_KEY, stringifyGameData());
+    download("data.js", stringifyGameData());
   });
 
   exportButton.addEventListener("click", exportGame);
@@ -275,7 +237,9 @@ function attachControlListeners() {
   clearButton.addEventListener("click", () => {
     modal.open({
       onOkcayClick: () => {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_APP_STATE_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_CODE_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_DATA_KEY);
         appDataState = initialDataState;
         initDrawingSurfaces();
         saveData();
@@ -336,6 +300,25 @@ function attachControlListeners() {
         });
         initDrawingSurfaces();
       }
+    });
+  });
+
+  gameCodeTabs.forEach(btn => {
+    btn.addEventListener("click", e => {
+      if (e.target.dataset.tab) {
+        appEditState.activeCodeTab = parseInt(e.target.dataset.tab);
+      }
+
+      gameCodeTabs.forEach(b => {
+        b.classList.remove(buttonActiveClass);
+
+        if (parseInt(b.dataset.tab) === appEditState.activeCodeTab) {
+          b.classList.add(buttonActiveClass);
+        }
+      });
+      console.log({ jar });
+
+      jar.updateCode(appEditState.codeContents[appEditState.activeCodeTab]);
     });
   });
 
@@ -672,7 +655,10 @@ function updateMapCoords({ x, y }) {
 }
 
 function saveData() {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appDataState));
+  localStorage.setItem(
+    LOCAL_STORAGE_APP_STATE_KEY,
+    JSON.stringify(appDataState)
+  );
 }
 
 function getMapDotColor(sprite) {
@@ -978,4 +964,46 @@ function handleKeys(e) {
     default:
       break;
   }
+}
+
+function parseGameData() {
+  return [
+    {
+      sprites: appDataState.sprites.flat(2),
+      spriteFlags: appDataState.spriteFlags,
+      map: appDataState.tileMap.flat(2),
+      sfx: appDataState.sfx,
+    },
+  ];
+}
+
+function previewGame(codeTab) {
+  const code = appEditState.codeContents;
+  const tab = appEditState.activeCodeTab;
+  code[tab] = codeTab;
+  localStorage.setItem(LOCAL_STORAGE_CODE_KEY, JSON.stringify(code));
+  window.sparky = sparky || {};
+  window.cancelAnimationFrame(sparky._frameRequestId);
+  window.sparky._data = parseGameData();
+
+  if (code) {
+    code.forEach((tab, index) => {
+      if (tab.startsWith("///")) {
+        gameCodeTabTooltips[index].innerText = tab
+          .split("\n")[0]
+          .replace("///", "");
+      } else {
+        gameCodeTabTooltips[index].innerText = "";
+      }
+    });
+    console.log({ code });
+    const entireCode = code.join(" ");
+    eval(entireCode);
+  }
+}
+
+function stringifyGameData() {
+  return `var sparky = sparky || {}; sparky._data = sparky._data || []; sparky._data.push(${JSON.stringify(
+    parseGameData()
+  )});`;
 }

@@ -1,7 +1,6 @@
 if (
-  localStorage.getItem("SPARKY_GAME_CODE") &&
-  localStorage.getItem("SPARKY_GAME_DATA")
+  localStorage.getItem(LOCAL_STORAGE_CODE_KEY) &&
+  localStorage.getItem(LOCAL_STORAGE_DATA_KEY)
 ) {
   eval(localStorage.getItem("SPARKY_GAME_DATA"));
-  eval(localStorage.getItem("SPARKY_GAME_CODE"));
-}
+  eval(localStorage.getItemLOCAL_STORAGE_DATA_KEY}

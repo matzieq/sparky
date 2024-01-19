@@ -317,11 +317,16 @@ canvas {
   font-size: 2rem;
 }
 
+.editor-wrapper {
+
+  min-width: 50%;
+}
+
 
 .editor {
   border: 1px solid #fbf5ef;
   margin-right: 20px;
-  min-width: 50%;
+  width: 100%;
   font-family: monospace;
   font-size: 1.2rem;
 }
@@ -335,7 +340,7 @@ canvas {
   font-family: 'Source Code Pro', monospace;
   font-size: 18px;
   font-weight: 400;
-  height: 340px;
+  height: 512px;
   letter-spacing: normal;
   line-height: 20px;
   padding: 10px;
@@ -367,4 +372,22 @@ canvas {
 .board {
   max-width: 512px;
   max-height: 512px;
+}
+
+.editor-tab {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  top: -80px;
+  left: -50%;
+  padding: 5px;
+  visibility: hidden;
+  background-color: #494d7e;
+  white-space: nowrap;
+}
+
+.editor-tab:hover .tooltip {
+  visibility: visible;
 }
