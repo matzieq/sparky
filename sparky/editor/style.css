@@ -382,10 +382,10 @@ canvas {
   position: absolute;
   top: -80px;
   left: -50%;
-  padding: 5px;
   visibility: hidden;
   background-color: #494d7e;
   white-space: nowrap;
+  padding: 5px;
 }
 
 .editor-tab:hover .tooltip {

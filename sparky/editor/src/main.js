@@ -194,7 +194,7 @@ function getMovingYouInfernalMachine() {
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_APP_STATE_KEY));
 
-  jar.onUpdate(previewGame);
+  jar.onUpdate(debounce(previewGame, 1000));
   if (localStorage.getItem(LOCAL_STORAGE_CODE_KEY)) {
     const gameCode = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CODE_KEY));
     console.log({ gameCode });
@@ -988,12 +988,14 @@ function previewGame(codeTab) {
 
   if (code) {
     code.forEach((tab, index) => {
+      const currentTabElement = gameCodeTabTooltips[index];
       if (tab.startsWith("///")) {
-        gameCodeTabTooltips[index].innerText = tab
-          .split("\n")[0]
-          .replace("///", "");
+        currentTabElement.innerText = tab.split("\n")[0].replace("///", "");
+
+        currentTabElement.style.padding = "5px";
       } else {
-        gameCodeTabTooltips[index].innerText = "";
+        currentTabElement.innerText = "";
+        currentTabElement.style.padding = "0";
       }
     });
     console.log({ code });
