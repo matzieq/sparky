@@ -135,6 +135,8 @@ const soundDisplay = document.querySelector(".sound-number");
 
 const gameCodeTabs = document.querySelectorAll(".editor-tab");
 const gameCodeTabTooltips = document.querySelectorAll(".editor-tab .tooltip");
+const runGameButton = document.querySelector(".btn.run-game");
+const stopGameButton = document.querySelector(".btn.stop-game");
 
 const highlight = editor => {
   editor.innerHTML = Prism.highlight(
@@ -152,8 +154,10 @@ const jar = CodeJar(document.querySelector(".editor"), highlight);
  * GET MOVING YOU INFERNAL MACHINE
  */
 
-getMovingYouInfernalMachine();
-modal.init();
+window.onload = function () {
+  getMovingYouInfernalMachine();
+  modal.init();
+};
 
 /**
  * FUNCTIONS
@@ -194,7 +198,6 @@ function getMovingYouInfernalMachine() {
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_APP_STATE_KEY));
 
-  jar.onUpdate(debounce(previewGame, 1000));
   if (localStorage.getItem(LOCAL_STORAGE_CODE_KEY)) {
     const gameCode = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CODE_KEY));
     console.log({ gameCode });
@@ -203,22 +206,28 @@ function getMovingYouInfernalMachine() {
     if (gameCode[0]) {
       jar.updateCode(gameCode[0]);
     }
+    try {
+      console.log(gameCode.join("\n"));
+      previewGame(gameCode.join("\n"));
+    } catch (err) {
+      console.log({ err });
+    }
   }
 
   if (appData) {
     appDataState = appData;
   }
 
-  previewGame(appEditState.codeContents[appEditState.activeCodeTab]);
+  jar.onUpdate(previewGame);
   initDrawingSurfaces();
 }
 
 function exportGame() {
   const gameDataString = stringifyGameData();
 
-  const gameCodeString = appEditState.codeContents.join(" ");
+  const gameCodeString = appEditState.codeContents.join("\n");
 
-  console.log({ gameCodeString });
+  console.log({ code: appEditState.codeContents, gameCodeString });
 
   download(
     "index.html",
@@ -316,11 +325,13 @@ function attachControlListeners() {
           b.classList.add(buttonActiveClass);
         }
       });
-      console.log({ jar });
 
       jar.updateCode(appEditState.codeContents[appEditState.activeCodeTab]);
     });
   });
+
+  runGameButton.addEventListener("click", runGame);
+  stopGameButton.addEventListener("click", stopGame);
 
   fileInput.addEventListener("change", () => {
     if (fileInput.files.length > 0) {
@@ -967,24 +978,21 @@ function handleKeys(e) {
 }
 
 function parseGameData() {
-  return [
-    {
-      sprites: appDataState.sprites.flat(2),
-      spriteFlags: appDataState.spriteFlags,
-      map: appDataState.tileMap.flat(2),
-      sfx: appDataState.sfx,
-    },
-  ];
+  return {
+    sprites: appDataState.sprites.flat(2),
+    spriteFlags: appDataState.spriteFlags,
+    map: appDataState.tileMap.flat(2),
+    sfx: appDataState.sfx,
+  };
 }
 
 function previewGame(codeTab) {
+  // const pos = jar.save();
+  // console.log("Firing preview", pos);
   const code = appEditState.codeContents;
   const tab = appEditState.activeCodeTab;
   code[tab] = codeTab;
   localStorage.setItem(LOCAL_STORAGE_CODE_KEY, JSON.stringify(code));
-  window.sparky = sparky || {};
-  window.cancelAnimationFrame(sparky._frameRequestId);
-  window.sparky._data = parseGameData();
 
   if (code) {
     code.forEach((tab, index) => {
@@ -999,9 +1007,31 @@ function previewGame(codeTab) {
       }
     });
     console.log({ code });
-    const entireCode = code.join(" ");
-    eval(entireCode);
   }
+}
+
+function runGame() {
+  const code = appEditState.codeContents;
+
+  window.sparky = sparky || {};
+  window.cancelAnimationFrame(sparky._frameRequestId);
+  window.sparky._data = [parseGameData()];
+
+  if (code) {
+    const entireCode = code.join(" ");
+    try {
+      eval(entireCode);
+    } catch (err) {
+      console.log({ err });
+    }
+  }
+}
+
+function stopGame() {
+  window.sparky = sparky || {};
+  window.cancelAnimationFrame(sparky._frameRequestId);
+  window.sparky._data = [];
+  window.sparky.init();
 }
 
 function stringifyGameData() {

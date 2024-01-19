@@ -435,9 +435,11 @@ sparky.init = function (config) {
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
   const scale = 1;
+  this._areMobileControlsActive = false;
   this._sparkycanv = document.createElement("canvas");
   this._sparkycanv.width = this._screenSize * scale;
   this._sparkycanv.height = this._screenSize * scale;
+  this._sparkycanv.className = "sparky-canvas";
   this._sparkyctx = this._sparkycanv.getContext("2d");
   this._sparkyctx.scale(scale, scale);
 
@@ -448,24 +450,113 @@ sparky.init = function (config) {
   const el = document.querySelector(
     config && config.element ? `.${config.element}` : ".board"
   );
+  const isEmbedded = !!el;
+
+  this._isEmbedded = isEmbedded;
 
   if (el) {
     el.innerHTML = "";
     el.appendChild(this._sparkycanv);
+    this._parentElem = el;
   } else {
-    document.body.appendChild(this._sparkycanv);
+    document.body.document.body.appendChild(this._sparkycanv);
+    this._parentElem = document.body;
   }
   this._draw = config && config.draw ? config.draw : function () {};
   this._update = config && config.update ? config.update : function () {};
   const style = document.createElement("style");
 
-  style.textContent = `
-    canvas {
-      display: block;
-      margin: 0 auto;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
+  const controlStyles = `
+  
+  .mobile-controls-wrapper {
+    display: flex;
+    justify-content: space-between;
+
+  }
+
+  .control-pad, .action-buttons {
+    position: relative;
+
+    margin: 96px 48px;
+  }
+
+  .control {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    background: #8b6d9c;
+    outline: none;
+    border: none;
+    color: #f2d3ab;
+    font-family: sans-serif;
+  }
+
+  .control:active {
+    background: #c69fa5;
+  }
+
+  .control-pad .control {
+    border-radius: 8px;
+  }
+
+  .action-buttons .control {
+    border-radius: 50%;
+  }
+
+  .control.control-left {
+    left: -48px;
+    top: 0;
+  }
+  .control.control-right {
+    left: 48px;
+    top: 0;
+  }
+  .control.control-up {
+    left: 0;
+    top: -48px;
+  }
+  .control.control-down {
+    left: 0;
+    top: 48px;
+  }
+  .control.control-a {
+    left: 0;
+    top: 48px;
+  }
+  .control.control-b {
+    left: -48px;
+    top: 0;
+  }
+  `;
+
+  const canvasStyles = `
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  `;
+
+  style.textContent = isEmbedded
+    ? `
+    .sparky-canvas {
+      ${canvasStyles};
     }
+    ${controlStyles}
+  `
+    : `
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #000;
+    }
+
+    canvas {
+      ${canvasStyles}
+    }
+    ${controlStyles}
   `;
 
   document.head.appendChild(style);
@@ -493,12 +584,48 @@ sparky.init = function (config) {
 };
 
 sparky._fitToScreen = function () {
-  if (window.innerWidth > window.innerHeight) {
-    this._sparkycanv.style.height = "50vh";
-    this._sparkycanv.style.width = "auto";
+  if (this._isEmbedded) {
+    if (window.innerWidth > window.innerHeight) {
+      this._sparkycanv.style.height = "50vh";
+      this._sparkycanv.style.width = "auto";
+    } else {
+      this._sparkycanv.style.width = "100%";
+      this._sparkycanv.style.height = "auto";
+    }
   } else {
-    this._sparkycanv.style.width = "100%";
-    this._sparkycanv.style.height = "auto";
+    if (window.innerWidth > window.innerHeight) {
+      this._sparkycanv.style.height = "100vh";
+      this._sparkycanv.style.width = "auto";
+    } else {
+      this._sparkycanv.style.width = "100vw";
+      this._sparkycanv.style.height = "auto";
+    }
+  }
+
+  if (window.innerWidth < 769) {
+    // this._areMobileControlsActive = true;
+    this._initMobileControls();
+  }
+};
+
+sparky._initMobileControls = function () {
+  if (!this._areMobileControlsActive) {
+    this._areMobileControlsActive = true;
+    const mobileControlsWrapper = document.createElement("div");
+    mobileControlsWrapper.className = "mobile-controls-wrapper";
+    mobileControlsWrapper.innerHTML = `
+    <div class="control-pad">
+      <button class="control control-left">&larr;</button>
+      <button class="control control-right">&rarr;</button>
+      <button class="control control-up">&uarr;</button>
+      <button class="control control-down">&darr;</button>
+    </div>
+    <div class="action-buttons">
+      <button class="control control-a">A</button>
+      <button class="control control-b">B</button>
+    </div>    
+    `;
+    this._parentElem.appendChild(mobileControlsWrapper);
   }
 };
 

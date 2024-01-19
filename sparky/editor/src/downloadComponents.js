@@ -438,6 +438,7 @@ sparky.init = function (config) {
   this._sparkycanv = document.createElement("canvas");
   this._sparkycanv.width = this._screenSize * scale;
   this._sparkycanv.height = this._screenSize * scale;
+  this._sparkycanv.className = "sparky-canvas";
   this._sparkyctx = this._sparkycanv.getContext("2d");
   this._sparkyctx.scale(scale, scale);
 
@@ -445,13 +446,42 @@ sparky.init = function (config) {
 
   this._sparkyctx.imageSmoothingEnabled = false;
 
-  document.body.appendChild(this._sparkycanv);
-  
+  const el = document.querySelector(
+     ".board"
+  );
+  const isEmbedded = !!el;
+
+  this._isEmbedded = isEmbedded;
+
+  if (el) {
+    el.innerHTML = "";
+    el.appendChild(this._sparkycanv);
+  } else {
+    document.body.appendChild(this._sparkycanv);
+  }
   this._draw = config && config.draw ? config.draw : function () {};
   this._update = config && config.update ? config.update : function () {};
   const style = document.createElement("style");
 
-  style.textContent = \`
+  style.textContent = isEmbedded
+    ? \`
+    .sparky-canvas {
+      display: block;
+      margin: 0 auto;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+  \`
+    : \`
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #000;
+    }
+
     canvas {
       display: block;
       margin: 0 auto;
@@ -485,12 +515,22 @@ sparky.init = function (config) {
 };
 
 sparky._fitToScreen = function () {
-  if (window.innerWidth > window.innerHeight) {
-    this._sparkycanv.style.height = "50vh";
-    this._sparkycanv.style.width = "auto";
+  if (this._isEmbedded) {
+    if (window.innerWidth > window.innerHeight) {
+      this._sparkycanv.style.height = "50vh";
+      this._sparkycanv.style.width = "auto";
+    } else {
+      this._sparkycanv.style.width = "100%";
+      this._sparkycanv.style.height = "auto";
+    }
   } else {
-    this._sparkycanv.style.width = "100%";
-    this._sparkycanv.style.height = "auto";
+    if (window.innerWidth > window.innerHeight) {
+      this._sparkycanv.style.height = "100vh";
+      this._sparkycanv.style.width = "auto";
+    } else {
+      this._sparkycanv.style.width = "100vw";
+      this._sparkycanv.style.height = "auto";
+    }
   }
 };
 
@@ -1480,6 +1520,7 @@ sparky.line = function (_x0, _y0, _x1, _y1, col = this._drawColor) {
     }
   }
 };
+
 `;
 
 function getDownloadHtml(gameTitle, dataString, gameString) {

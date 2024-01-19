@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sparky Editor</title>
+    <title>Sparky Editor</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap"
@@ -15,7 +15,7 @@
   </head>
   <body>
     <header class="header">
-      <a href="/sparky"><h1>Sparky Editor</h1></a>
+      <a href="/sparky"><h1>Sparky</h1></a>
       <nav class="navbar">
         <ul>
           <li><a href="/sparky/editor">Editor</a></li>
@@ -388,7 +388,13 @@
             </div>
             <div class="editor"></div>
           </div>
-          <div class="board"></div>
+          <div class="board-wrapper">
+            <div class="btn-group">
+              <button class="btn control-btn run-game">RUN</button>
+              <button class="btn control-btn stop-game">STOP</button>
+            </div>
+            <div class="board"></div>
+          </div>
         </div>
       </section>
       <div class="modal-overlay">

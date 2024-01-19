@@ -369,6 +369,10 @@ canvas {
   display: flex;
 }
 
+.editor-wrapper {
+  margin-right: 10px;
+}
+
 .board {
   max-width: 512px;
   max-height: 512px;
