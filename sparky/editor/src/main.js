@@ -26,8 +26,8 @@ const modal = {
     this.okButton = this.ref.querySelector(".ok-button");
     this.cancelButton = this.ref.querySelector(".cancel-button");
 
-    this.okButton.addEventListener("click", e => this.onOk(e));
-    this.cancelButton.addEventListener("click", e => this.onCancel(e));
+    this.okButton.addEventListener("click", (e) => this.onOk(e));
+    this.cancelButton.addEventListener("click", (e) => this.onCancel(e));
   },
   open(config) {
     if (config) {
@@ -77,6 +77,7 @@ const sections = document.querySelectorAll(".section");
 const controlButtons = document.querySelectorAll(".control-button");
 const downloadButton = document.querySelector(".download-button");
 const exportButton = document.querySelector(".export-button");
+const importButton = document.querySelector("#import-game-file");
 const clearButton = document.querySelector(".clear-button");
 const fileInput = document.querySelector("#import-data-file");
 const toolButtons = document.querySelectorAll(".tool-button");
@@ -138,7 +139,7 @@ const gameCodeTabTooltips = document.querySelectorAll(".editor-tab .tooltip");
 const runGameButton = document.querySelector(".btn.run-game");
 const stopGameButton = document.querySelector(".btn.stop-game");
 
-const highlight = editor => {
+const highlight = (editor) => {
   editor.innerHTML = Prism.highlight(
     editor.textContent ?? "",
     Prism.languages.javascript,
@@ -174,7 +175,7 @@ function getMovingYouInfernalMachine() {
   attachTilemapListeners();
   attachSfxListeners();
 
-  document.addEventListener("mousedown", e => {
+  document.addEventListener("mousedown", (e) => {
     appEditState.isDrawing = true;
 
     if (Array.from(cells).indexOf(e.target) >= 0) {
@@ -225,7 +226,7 @@ function getMovingYouInfernalMachine() {
 function exportGame() {
   const gameDataString = stringifyGameData();
 
-  const gameCodeString = appEditState.codeContents.join("\n");
+  const gameCodeString = appEditState.codeContents.join("///->\n");
 
   console.log({ code: appEditState.codeContents, gameCodeString });
 
@@ -235,6 +236,89 @@ function exportGame() {
   );
 }
 
+function importGame() {
+  if (importButton.files.length > 0) {
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      modal.open({
+        text: "This will erase current project data and replace it with new data",
+        onOkcayClick: () => {
+          try {
+            const fileContents = reader.result
+              .split("<script>")
+              .map((part) => part.replace("</script>", ""))
+              .map((part) => part.replace("</body>", ""))
+              .map((part) => part.replace("</html>", ""));
+            console.log(fileContents);
+            const data = fileContents[2];
+            const code = fileContents[3].split("///->");
+            // console.log(reader.result)
+            const index = data.indexOf('{"sprites');
+
+            const json = data.slice(index).replace(";", "").replace(")", "");
+            console.log({ json: json.slice(0, data.indexOf("}]}]}]")) });
+
+            const res = JSON.parse(json.slice(0, data.indexOf("}]}]}]")));
+
+            if (res.sprites && res.map && res.sfx && res.spriteFlags) {
+              const sprites = deflatten(res.sprites, TILE_SIZE * TILE_SIZE).map(
+                (sprite) => deflatten(sprite, TILE_SIZE)
+              );
+
+              const tileMap = deflatten(
+                res.map,
+                TILEMAP_SIZE * TILEMAP_SIZE
+              ).map((screen) => deflatten(screen, TILEMAP_SIZE));
+
+              const newData = {
+                sprites,
+                tileMap,
+                spriteFlags: res.spriteFlags,
+                sfx: res.sfx,
+              };
+
+              appDataState = newData;
+              fileInput.value = "";
+              initDrawingSurfaces();
+              saveData();
+            }
+
+            const gameCode = Array(8)
+              .fill(undefined)
+              .map((_, index) => (code[index] ? code[index].trim() : ""));
+            appEditState.codeContents = gameCode;
+            appEditState.activeCodeTab = 0;
+            gameCodeTabs.forEach((b) => {
+              b.classList.remove(buttonActiveClass);
+
+              if (parseInt(b.dataset.tab) === appEditState.activeCodeTab) {
+                b.classList.add(buttonActiveClass);
+              }
+            });
+
+            if (gameCode[0]) {
+              jar.updateCode(gameCode[0]);
+            }
+            localStorage.setItem(
+              LOCAL_STORAGE_CODE_KEY,
+              JSON.stringify(gameCode)
+            );
+          } catch (err) {
+            console.error(err);
+          }
+        },
+
+        onCancelClick: () => {
+          importButton.value = "";
+        },
+      });
+    });
+
+    reader.readAsText(importButton.files[0]);
+  }
+}
+
 function attachControlListeners() {
   downloadButton.addEventListener("click", () => {
     localStorage.setItem(LOCAL_STORAGE_DATA_KEY, stringifyGameData());
@@ -242,6 +326,7 @@ function attachControlListeners() {
   });
 
   exportButton.addEventListener("click", exportGame);
+  importButton.addEventListener("change", importGame);
 
   clearButton.addEventListener("click", () => {
     modal.open({
@@ -258,28 +343,30 @@ function attachControlListeners() {
     });
   });
 
-  controlButtons.forEach(button =>
+  controlButtons.forEach((button) =>
     button.addEventListener("click", () => {
-      controlButtons.forEach(btn => btn.classList.remove(buttonActiveClass));
-      sections.forEach(section => section.classList.remove(sectionActiveClass));
+      controlButtons.forEach((btn) => btn.classList.remove(buttonActiveClass));
+      sections.forEach((section) =>
+        section.classList.remove(sectionActiveClass)
+      );
 
       const toggleMode = button.dataset.activate;
       button.classList.add(buttonActiveClass);
 
       Array.from(sections)
-        .find(section => section.id === toggleMode)
+        .find((section) => section.id === toggleMode)
         .classList.add(sectionActiveClass);
       initDrawingSurfaces();
       appEditState.mode = toggleMode;
     })
   );
 
-  toolButtons.forEach(button => {
-    button.addEventListener("click", e => {
+  toolButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
       if (e.target.dataset.mode) {
         appEditState.drawingMode = e.target.dataset.mode.toUpperCase();
 
-        toolButtons.forEach(button => {
+        toolButtons.forEach((button) => {
           button.classList.remove(buttonActiveClass);
 
           if (button.dataset.mode.toUpperCase() === appEditState.drawingMode) {
@@ -290,14 +377,14 @@ function attachControlListeners() {
     });
   });
 
-  spritePageSelectButtons.forEach(button => {
-    button.addEventListener("click", e => {
+  spritePageSelectButtons.forEach((button) => {
+    button.addEventListener("click", (e) => {
       if (e.target.dataset.sheetnumber) {
         appEditState.selectedSpriteSheetPage = parseInt(
           e.target.dataset.sheetnumber
         );
 
-        spritePageSelectButtons.forEach(btn => {
+        spritePageSelectButtons.forEach((btn) => {
           btn.classList.remove(buttonActiveClass);
 
           if (
@@ -312,13 +399,13 @@ function attachControlListeners() {
     });
   });
 
-  gameCodeTabs.forEach(btn => {
-    btn.addEventListener("click", e => {
+  gameCodeTabs.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
       if (e.target.dataset.tab) {
         appEditState.activeCodeTab = parseInt(e.target.dataset.tab);
       }
 
-      gameCodeTabs.forEach(b => {
+      gameCodeTabs.forEach((b) => {
         b.classList.remove(buttonActiveClass);
 
         if (parseInt(b.dataset.tab) === appEditState.activeCodeTab) {
@@ -351,12 +438,12 @@ function attachControlListeners() {
                 const sprites = deflatten(
                   res.sprites,
                   TILE_SIZE * TILE_SIZE
-                ).map(sprite => deflatten(sprite, TILE_SIZE));
+                ).map((sprite) => deflatten(sprite, TILE_SIZE));
 
                 const tileMap = deflatten(
                   res.map,
                   TILEMAP_SIZE * TILEMAP_SIZE
-                ).map(screen => deflatten(screen, TILEMAP_SIZE));
+                ).map((screen) => deflatten(screen, TILEMAP_SIZE));
 
                 const newData = {
                   sprites,
@@ -399,18 +486,18 @@ function deflatten(arr, chunk) {
 }
 
 function attachSpriteEditListeners() {
-  cells.forEach(cell =>
+  cells.forEach((cell) =>
     cell.addEventListener("mouseover", () => enableDrawing(cell))
   );
 
   colorButtons.forEach((button, i) =>
-    button.addEventListener("click", e => {
+    button.addEventListener("click", (e) => {
       appEditState.selectedColor = i;
       currentColor.style.backgroundColor = palette[i];
     })
   );
 
-  spritePreview.addEventListener("click", e => {
+  spritePreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, spritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -419,13 +506,13 @@ function attachSpriteEditListeners() {
     );
   });
 
-  checkboxes.forEach(checkbox =>
+  checkboxes.forEach((checkbox) =>
     checkbox.addEventListener("change", toggleSpriteFlag)
   );
 }
 
 function attachTilemapListeners() {
-  mapSpritePreview.addEventListener("click", e => {
+  mapSpritePreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, mapSpritePreview);
     const spriteIndex =
       Math.floor(mousePos.y / 40) * 8 + Math.floor(mousePos.x / 40);
@@ -434,13 +521,13 @@ function attachTilemapListeners() {
     );
   });
 
-  mapDrawingSurface.addEventListener("mousemove", e => {
+  mapDrawingSurface.addEventListener("mousemove", (e) => {
     const mousePos = getMousePos(e, mapDrawingSurface);
     drawOnMap(mousePos);
     updateMapCoords(mousePos);
   });
 
-  mapPreview.addEventListener("click", e => {
+  mapPreview.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, mapPreview);
     const mapX = Math.floor(mousePos.x / (16 * 4));
     const mapY = Math.floor(mousePos.y / (16 * 4));
@@ -455,27 +542,27 @@ function attachSfxListeners() {
   );
   tempoIncButton.addEventListener("click", increaseTempo);
   tempoDecButton.addEventListener("click", decreaseTempo);
-  soundCanvas.addEventListener("mousemove", e => {
+  soundCanvas.addEventListener("mousemove", (e) => {
     const mousePos = getMousePos(e, soundCanvas);
     if (appEditState.isDrawing) {
       drawSounds(mousePos);
     }
   });
 
-  soundCanvas.addEventListener("click", e => {
+  soundCanvas.addEventListener("click", (e) => {
     const mousePos = getMousePos(e, soundCanvas);
     drawSounds(mousePos);
   });
 
-  waveTypeButtons.forEach(button => {
+  waveTypeButtons.forEach((button) => {
     button.addEventListener("click", changeWaveType);
   });
 
-  fxButtons.forEach(button => {
+  fxButtons.forEach((button) => {
     button.addEventListener("click", changeFx);
   });
 
-  octaveButtons.forEach(button => {
+  octaveButtons.forEach((button) => {
     button.addEventListener("click", changeOctave);
   });
 
@@ -499,7 +586,7 @@ function changeSelectedSprite(newSprite) {
   const mapSpriteNumber = newSprite - 64 * appEditState.selectedSpriteSheetPage;
   const spriteRow = Math.floor(mapSpriteNumber / 8);
   const spriteCol = mapSpriteNumber % 8;
-  [spritePreviewCtx, mapSpritePreviewCtx].forEach(ctx => {
+  [spritePreviewCtx, mapSpritePreviewCtx].forEach((ctx) => {
     appDataState.sprites.forEach((_, index) =>
       updateSprite(
         index,
@@ -513,7 +600,7 @@ function changeSelectedSprite(newSprite) {
     ctx.lineWidth = 1;
     ctx.strokeRect(spriteCol * 8, spriteRow * 8, 8, 8);
   });
-  spriteNumberInfo.forEach(span => (span.textContent = newSprite));
+  spriteNumberInfo.forEach((span) => (span.textContent = newSprite));
   updateDrawingSurface(newSprite);
 }
 
@@ -575,7 +662,7 @@ function updateDrawingSurface(spriteIndex) {
     cell.style.backgroundColor = palette[pixels[index]];
   });
 
-  checkboxes.forEach(checkbox => {
+  checkboxes.forEach((checkbox) => {
     const flagNumber = parseInt(checkbox.dataset.flag);
     const mask = 1 << flagNumber;
 
@@ -675,7 +762,7 @@ function saveData() {
 function getMapDotColor(sprite) {
   const spriteDensity = sprite
     .flat()
-    .map(cell => (cell === 5 ? 0 : 1))
+    .map((cell) => (cell === 5 ? 0 : 1))
     .reduce((a, b) => a + b, 0);
 
   let color = 5;
@@ -735,7 +822,7 @@ function updateSfxPaint() {
   soundCanvasCtx.fillRect(0, 256 - 8 * 20, soundCanvas.width, 1);
   soundCanvasCtx.fillRect(0, 256 - 8 * 25, soundCanvas.width, 1);
 
-  waveTypeButtons.forEach(button => {
+  waveTypeButtons.forEach((button) => {
     button.classList.remove(buttonActiveClass);
     const commonWaveType = areSameWaveTypes();
     if (!sample && commonWaveType) {
@@ -747,7 +834,7 @@ function updateSfxPaint() {
     }
   });
 
-  fxButtons.forEach(button => {
+  fxButtons.forEach((button) => {
     button.classList.remove(buttonActiveClass);
     const commonFx = areSameFx();
     if (!sample && commonFx != null) {
@@ -759,7 +846,7 @@ function updateSfxPaint() {
     }
   });
 
-  octaveButtons.forEach(button => {
+  octaveButtons.forEach((button) => {
     button.classList.remove(buttonActiveClass);
 
     const commonOctave = areSameOctaves();
@@ -777,7 +864,7 @@ function updateSfxPaint() {
 function areSameWaveTypes() {
   const { samples } = getSelectedSound();
   const waveType = samples[0].type;
-  if (samples.every(sample => sample.type === waveType)) {
+  if (samples.every((sample) => sample.type === waveType)) {
     return waveType;
   } else {
     return null;
@@ -787,7 +874,7 @@ function areSameWaveTypes() {
 function areSameFx() {
   const { samples } = getSelectedSound();
   const { fx } = samples[0];
-  if (samples.every(sample => sample.fx === fx)) {
+  if (samples.every((sample) => sample.fx === fx)) {
     return fx;
   } else {
     return null;
@@ -842,7 +929,7 @@ function changeWaveType(e) {
   const { selectedSound, selectedSample } = appEditState;
   const sound = appDataState.sfx[selectedSound];
   if (selectedSample == undefined) {
-    sound.samples.forEach(sample => (sample.type = e.target.dataset.type));
+    sound.samples.forEach((sample) => (sample.type = e.target.dataset.type));
   } else {
     sound.samples[selectedSample].type = e.target.dataset.type;
   }
@@ -854,7 +941,7 @@ function changeFx(e) {
   const { selectedSound, selectedSample } = appEditState;
   const sound = appDataState.sfx[selectedSound];
   if (selectedSample == undefined) {
-    sound.samples.forEach(sample => (sample.fx = e.target.dataset.type));
+    sound.samples.forEach((sample) => (sample.fx = e.target.dataset.type));
   } else {
     sound.samples[selectedSample].fx = e.target.dataset.type;
   }
@@ -921,7 +1008,7 @@ function togglePrevSound() {
 function areSameOctaves() {
   const { samples } = getSelectedSound();
   const { oct } = samples[0];
-  if (samples.every(sample => sample.oct === oct)) {
+  if (samples.every((sample) => sample.oct === oct)) {
     return oct;
   } else {
     return null;
@@ -933,7 +1020,7 @@ function changeOctave(e) {
   const sound = appDataState.sfx[selectedSound];
   if (selectedSample == undefined) {
     sound.samples.forEach(
-      sample => (sample.oct = parseInt(e.target.dataset.octave))
+      (sample) => (sample.oct = parseInt(e.target.dataset.octave))
     );
   } else {
     sound.samples[selectedSample].oct = parseInt(e.target.dataset.octave);
@@ -951,7 +1038,7 @@ function handleKeys(e) {
     case "p":
       appEditState.drawingMode = PEN;
 
-      toolButtons.forEach(button => {
+      toolButtons.forEach((button) => {
         button.classList.remove(buttonActiveClass);
 
         if (button.dataset.mode.toUpperCase() === PEN) {
@@ -963,7 +1050,7 @@ function handleKeys(e) {
     case "f":
       appEditState.drawingMode = FILL;
 
-      toolButtons.forEach(button => {
+      toolButtons.forEach((button) => {
         button.classList.remove(buttonActiveClass);
 
         if (button.dataset.mode.toUpperCase() === FILL) {
@@ -1018,7 +1105,7 @@ function runGame() {
   window.sparky._data = [parseGameData()];
 
   if (code) {
-    const entireCode = code.join(" ");
+    const entireCode = code.join("///->\n");
     try {
       eval(entireCode);
     } catch (err) {
@@ -1026,7 +1113,7 @@ function runGame() {
     }
   }
 
-  runGameButton.classList.add('btn-active');
+  runGameButton.classList.add("btn-active");
 }
 
 function stopGame() {
@@ -1034,7 +1121,7 @@ function stopGame() {
   window.cancelAnimationFrame(sparky._frameRequestId);
   window.sparky._data = [];
   window.sparky.init();
-  runGameButton.classList.remove('btn-active');
+  runGameButton.classList.remove("btn-active");
 }
 
 function stringifyGameData() {

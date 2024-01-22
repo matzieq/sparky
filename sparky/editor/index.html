@@ -9,9 +9,12 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="prism.css" />
+    <link rel="stylesheet" href="codejar-linenumbers.css" />
+
   </head>
   <body>
     <header class="header">
@@ -37,6 +40,10 @@
           </li>
           <li>
             <button class="btn btn-file download-button">Save</button>
+          </li>
+          <li>
+            <label for="import-game-file" class="btn btn-file ">Import</label>
+            <input type="file" id="import-game-file" value="LOAD" class="import-button" />
           </li>
           <li>
             <button class="btn btn-file export-button">Export</button>
@@ -419,6 +426,7 @@
     </main>
     <script src="src/downloadComponents.js"></script>
     <script src="../sparky-lib/sparky.js"></script>
+    <script src="src/codejar-linenumbers.js"></script>
     <script src="src/codejar.js"></script>
     <script src="src/prism.js"></script>
     <script src="src/audioContextPatch.js"></script>

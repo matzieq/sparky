@@ -591,6 +591,8 @@ sparky.init = function (config) {
   }
 };
 
+sparky.getMovingYouInfernalMachine = sparky.init;
+
 sparky._fitToScreen = function () {
   if (this._isEmbedded) {
     if (window.innerWidth > window.innerHeight) {

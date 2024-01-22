@@ -288,6 +288,9 @@ canvas {
 #import-data-file {
   display: none;
 }
+#import-game-file {
+  display: none;
+}
 
 .modal-overlay {
   display: none;
@@ -349,13 +352,13 @@ canvas {
 }
 
 .editor {
-  font-family: 'Source Code Pro', monospace;
-  font-size: 18px;
+  /* font-family: 'Source Code Pro', monospace; */
+  /* font-size: 18px; */
   font-weight: 400;
   height: 512px;
-  letter-spacing: normal;
-  line-height: 20px;
-  padding: 10px;
+  /* letter-spacing: normal; */
+  /* line-height: 20px; */
+  /* padding: 10px; */
   tab-size: 4;
 }
 

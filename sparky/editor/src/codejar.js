@@ -1,381 +1,511 @@
-/**
- * Minified by jsDelivr using Terser v5.19.0.
- * Original file: /npm/codejar@4.2.0/dist/codejar.js
- *
- * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
- */
 const globalWindow = window;
-
-function CodeJar(t, e, n = {}) {
-  const o = {
-      tab: "\t",
-      indentOn: /[({\[]$/,
-      moveToNewLine: /^[)}\]]/,
-      spellcheck: !1,
-      catchTab: !0,
-      preserveIdent: !0,
-      addClosing: !0,
-      history: !0,
-      window: globalWindow,
-      ...n,
-    },
-    r = o.window,
-    i = r.document,
-    s = [],
-    d = [];
-  let a,
-    c = -1,
-    l = !1,
-    f = () => {};
-  t.setAttribute("contenteditable", "plaintext-only"),
-    t.setAttribute("spellcheck", o.spellcheck ? "true" : "false"),
-    (t.style.outline = "none"),
-    (t.style.overflowWrap = "break-word"),
-    (t.style.overflowY = "auto"),
-    (t.style.whiteSpace = "pre-wrap");
-  const u = (t, n) => {
-    e(t, n);
-  };
-  let p = !1;
-  "plaintext-only" !== t.contentEditable && (p = !0),
-    p && t.setAttribute("contenteditable", "true");
-  const h = A(() => {
-    const e = C();
-    u(t, e), E(e);
-  }, 30);
-  let g = !1;
-  const y = t =>
-      !M(t) &&
-      !D(t) &&
-      "Meta" !== t.key &&
-      "Control" !== t.key &&
-      "Alt" !== t.key &&
-      !t.key.startsWith("Arrow"),
-    N = A(t => {
-      y(t) && (k(), (g = !1));
-    }, 300),
-    T = (e, n) => {
-      s.push([e, n]), t.addEventListener(e, n);
+function CodeJar(editor, highlight, opt = {}) {
+    const options = {
+        tab: '\t',
+        indentOn: /[({\[]$/,
+        moveToNewLine: /^[)}\]]/,
+        spellcheck: false,
+        catchTab: true,
+        preserveIdent: true,
+        addClosing: true,
+        history: true,
+        window: globalWindow,
+        ...opt,
     };
-  function C() {
-    const e = K(),
-      n = { start: 0, end: 0, dir: void 0 };
-    let { anchorNode: o, anchorOffset: r, focusNode: s, focusOffset: d } = e;
-    if (!o || !s) throw "error1";
-    if (o === t && s === t)
-      return (
-        (n.start = r > 0 && t.textContent ? t.textContent.length : 0),
-        (n.end = d > 0 && t.textContent ? t.textContent.length : 0),
-        (n.dir = d >= r ? "->" : "<-"),
-        n
-      );
-    if (o.nodeType === Node.ELEMENT_NODE) {
-      const t = i.createTextNode("");
-      o.insertBefore(t, o.childNodes[r]), (o = t), (r = 0);
-    }
-    if (s.nodeType === Node.ELEMENT_NODE) {
-      const t = i.createTextNode("");
-      s.insertBefore(t, s.childNodes[d]), (s = t), (d = 0);
-    }
-    return (
-      v(t, t => {
-        if (t === o && t === s)
-          return (
-            (n.start += r), (n.end += d), (n.dir = r <= d ? "->" : "<-"), "stop"
-          );
-        if (t === o) {
-          if (((n.start += r), n.dir)) return "stop";
-          n.dir = "->";
-        } else if (t === s) {
-          if (((n.end += d), n.dir)) return "stop";
-          n.dir = "<-";
+    const window = options.window;
+    const document = window.document;
+    const listeners = [];
+    const history = [];
+    let at = -1;
+    let focus = false;
+    let onUpdate = () => void 0;
+    let prev; // code content prior keydown event
+    editor.setAttribute('contenteditable', 'plaintext-only');
+    editor.setAttribute('spellcheck', options.spellcheck ? 'true' : 'false');
+    editor.style.outline = 'none';
+    editor.style.overflowWrap = 'break-word';
+    editor.style.overflowY = 'auto';
+    editor.style.whiteSpace = 'pre-wrap';
+    const doHighlight = (editor, pos) => {
+        highlight(editor, pos);
+    };
+    let isLegacy = false; // true if plaintext-only is not supported
+    if (editor.contentEditable !== 'plaintext-only')
+        isLegacy = true;
+    if (isLegacy)
+        editor.setAttribute('contenteditable', 'true');
+    const debounceHighlight = debounce(() => {
+        const pos = save();
+        doHighlight(editor, pos);
+        restore(pos);
+    }, 30);
+    let recording = false;
+    const shouldRecord = (event) => {
+        return !isUndo(event) && !isRedo(event)
+            && event.key !== 'Meta'
+            && event.key !== 'Control'
+            && event.key !== 'Alt'
+            && !event.key.startsWith('Arrow');
+    };
+    const debounceRecordHistory = debounce((event) => {
+        if (shouldRecord(event)) {
+            recordHistory();
+            recording = false;
         }
-        t.nodeType === Node.TEXT_NODE &&
-          ("->" != n.dir && (n.start += t.nodeValue.length),
-          "<-" != n.dir && (n.end += t.nodeValue.length));
-      }),
-      t.normalize(),
-      n
-    );
-  }
-  function E(e) {
-    const n = K();
-    let o,
-      r,
-      s = 0,
-      d = 0;
-    if (
-      (e.dir || (e.dir = "->"),
-      e.start < 0 && (e.start = 0),
-      e.end < 0 && (e.end = 0),
-      "<-" == e.dir)
-    ) {
-      const { start: t, end: n } = e;
-      (e.start = n), (e.end = t);
-    }
-    let a = 0;
-    v(t, t => {
-      if (t.nodeType !== Node.TEXT_NODE) return;
-      const n = (t.nodeValue || "").length;
-      if (a + n > e.start && (o || ((o = t), (s = e.start - a)), a + n > e.end))
-        return (r = t), (d = e.end - a), "stop";
-      a += n;
-    }),
-      o || ((o = t), (s = t.childNodes.length)),
-      r || ((r = t), (d = t.childNodes.length)),
-      "<-" == e.dir && ([o, s, r, d] = [r, d, o, s]);
-    {
-      const t = m(o);
-      if (t) {
-        const e = i.createTextNode("");
-        t.parentNode?.insertBefore(e, t), (o = e), (s = 0);
-      }
-      const e = m(r);
-      if (e) {
-        const t = i.createTextNode("");
-        e.parentNode?.insertBefore(t, e), (r = t), (d = 0);
-      }
-    }
-    n.setBaseAndExtent(o, s, r, d), t.normalize();
-  }
-  function m(e) {
-    for (; e && e !== t; ) {
-      if (e.nodeType === Node.ELEMENT_NODE) {
-        const t = e;
-        if ("false" == t.getAttribute("contenteditable")) return t;
-      }
-      e = e.parentNode;
-    }
-  }
-  function b() {
-    const e = K().getRangeAt(0),
-      n = i.createRange();
-    return (
-      n.selectNodeContents(t),
-      n.setEnd(e.startContainer, e.startOffset),
-      n.toString()
-    );
-  }
-  function x() {
-    const e = K().getRangeAt(0),
-      n = i.createRange();
-    return (
-      n.selectNodeContents(t),
-      n.setStart(e.endContainer, e.endOffset),
-      n.toString()
-    );
-  }
-  function w(t) {
-    if (p && "Enter" === t.key)
-      if ((H(t), t.stopPropagation(), "" == x())) {
-        L("\n ");
-        const t = C();
-        (t.start = --t.end), E(t);
-      } else L("\n");
-  }
-  function k() {
-    if (!l) return;
-    const e = t.innerHTML,
-      n = C(),
-      o = d[c];
-    if (o && o.html === e && o.pos.start === n.start && o.pos.end === n.end)
-      return;
-    c++, (d[c] = { html: e, pos: n }), d.splice(c + 1);
-    c > 300 && ((c = 300), d.splice(0, 1));
-  }
-  function v(t, e) {
-    const n = [];
-    t.firstChild && n.push(t.firstChild);
-    let o = n.pop();
-    for (; o && "stop" !== e(o); )
-      o.nextSibling && n.push(o.nextSibling),
-        o.firstChild && n.push(o.firstChild),
-        (o = n.pop());
-  }
-  function O(t) {
-    return t.metaKey || t.ctrlKey;
-  }
-  function M(t) {
-    return O(t) && !t.shiftKey && "Z" === S(t);
-  }
-  function D(t) {
-    return O(t) && t.shiftKey && "Z" === S(t);
-  }
-  function S(t) {
-    let e = t.key || t.keyCode || t.which;
-    if (e)
-      return ("string" == typeof e ? e : String.fromCharCode(e)).toUpperCase();
-  }
-  function L(t) {
-    (t = t
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")),
-      i.execCommand("insertHTML", !1, t);
-  }
-  function A(t, e) {
-    let n = 0;
-    return (...o) => {
-      clearTimeout(n), (n = r.setTimeout(() => t(...o), e));
+    }, 300);
+    const on = (type, fn) => {
+        listeners.push([type, fn]);
+        editor.addEventListener(type, fn);
     };
-  }
-  function _(t) {
-    let e = t.length - 1;
-    for (; e >= 0 && "\n" !== t[e]; ) e--;
-    e++;
-    let n = e;
-    for (; n < t.length && /[ \t]/.test(t[n]); ) n++;
-    return [t.substring(e, n) || "", e, n];
-  }
-  function B() {
-    return t.textContent || "";
-  }
-  function H(t) {
-    t.preventDefault();
-  }
-  function K() {
-    return t.parentNode?.nodeType == Node.DOCUMENT_FRAGMENT_NODE
-      ? t.parentNode.getSelection()
-      : r.getSelection();
-  }
-  return (
-    T("keydown", e => {
-      e.defaultPrevented ||
-        ((a = B()),
-        o.preserveIdent
-          ? (function (t) {
-              if ("Enter" === t.key) {
-                const e = b(),
-                  n = x();
-                let [r] = _(e),
-                  i = r;
-                if (
-                  (o.indentOn.test(e) && (i += o.tab),
-                  i.length > 0
-                    ? (H(t), t.stopPropagation(), L("\n" + i))
-                    : w(t),
-                  i !== r && o.moveToNewLine.test(n))
-                ) {
-                  const t = C();
-                  L("\n" + r), E(t);
+    on('keydown', event => {
+        if (event.defaultPrevented)
+            return;
+        prev = toString();
+        if (options.preserveIdent)
+            handleNewLine(event);
+        else
+            legacyNewLineFix(event);
+        if (options.catchTab)
+            handleTabCharacters(event);
+        if (options.addClosing)
+            handleSelfClosingCharacters(event);
+        if (options.history) {
+            handleUndoRedo(event);
+            if (shouldRecord(event) && !recording) {
+                recordHistory();
+                recording = true;
+            }
+        }
+        if (isLegacy && !isCopy(event))
+            restore(save());
+    });
+    on('keyup', event => {
+        if (event.defaultPrevented)
+            return;
+        if (event.isComposing)
+            return;
+        if (prev !== toString())
+            debounceHighlight();
+        debounceRecordHistory(event);
+        onUpdate(toString());
+    });
+    on('focus', _event => {
+        focus = true;
+    });
+    on('blur', _event => {
+        focus = false;
+    });
+    on('paste', event => {
+        recordHistory();
+        handlePaste(event);
+        recordHistory();
+        onUpdate(toString());
+    });
+    on('cut', event => {
+        recordHistory();
+        handleCut(event);
+        recordHistory();
+        onUpdate(toString());
+    });
+    function save() {
+        const s = getSelection();
+        const pos = { start: 0, end: 0, dir: undefined };
+        let { anchorNode, anchorOffset, focusNode, focusOffset } = s;
+        if (!anchorNode || !focusNode)
+            throw 'error1';
+        // If the anchor and focus are the editor element, return either a full
+        // highlight or a start/end cursor position depending on the selection
+        if (anchorNode === editor && focusNode === editor) {
+            pos.start = (anchorOffset > 0 && editor.textContent) ? editor.textContent.length : 0;
+            pos.end = (focusOffset > 0 && editor.textContent) ? editor.textContent.length : 0;
+            pos.dir = (focusOffset >= anchorOffset) ? '->' : '<-';
+            return pos;
+        }
+        // Selection anchor and focus are expected to be text nodes,
+        // so normalize them.
+        if (anchorNode.nodeType === Node.ELEMENT_NODE) {
+            const node = document.createTextNode('');
+            anchorNode.insertBefore(node, anchorNode.childNodes[anchorOffset]);
+            anchorNode = node;
+            anchorOffset = 0;
+        }
+        if (focusNode.nodeType === Node.ELEMENT_NODE) {
+            const node = document.createTextNode('');
+            focusNode.insertBefore(node, focusNode.childNodes[focusOffset]);
+            focusNode = node;
+            focusOffset = 0;
+        }
+        visit(editor, el => {
+            if (el === anchorNode && el === focusNode) {
+                pos.start += anchorOffset;
+                pos.end += focusOffset;
+                pos.dir = anchorOffset <= focusOffset ? '->' : '<-';
+                return 'stop';
+            }
+            if (el === anchorNode) {
+                pos.start += anchorOffset;
+                if (!pos.dir) {
+                    pos.dir = '->';
                 }
-              }
-            })(e)
-          : w(e),
-        o.catchTab &&
-          (function (t) {
-            if ("Tab" === t.key)
-              if ((H(t), t.shiftKey)) {
-                const t = b();
-                let [e, n] = _(t);
-                if (e.length > 0) {
-                  const t = C(),
-                    r = Math.min(o.tab.length, e.length);
-                  E({ start: n, end: n + r }),
-                    i.execCommand("delete"),
-                    (t.start -= r),
-                    (t.end -= r),
-                    E(t);
+                else {
+                    return 'stop';
                 }
-              } else L(o.tab);
-          })(e),
-        o.addClosing &&
-          (function (t) {
-            const e = "([{'\"",
-              n = ")]}'\"";
-            if (e.includes(t.key)) {
-              H(t);
-              const o = C(),
-                r = o.start == o.end ? "" : K().toString();
-              L(t.key + r + n[e.indexOf(t.key)]), o.start++, o.end++, E(o);
             }
-          })(e),
-        o.history &&
-          (!(function (e) {
-            if (M(e)) {
-              H(e), c--;
-              const n = d[c];
-              n && ((t.innerHTML = n.html), E(n.pos)), c < 0 && (c = 0);
+            else if (el === focusNode) {
+                pos.end += focusOffset;
+                if (!pos.dir) {
+                    pos.dir = '<-';
+                }
+                else {
+                    return 'stop';
+                }
             }
-            if (D(e)) {
-              H(e), c++;
-              const n = d[c];
-              n && ((t.innerHTML = n.html), E(n.pos)), c >= d.length && c--;
+            if (el.nodeType === Node.TEXT_NODE) {
+                if (pos.dir != '->')
+                    pos.start += el.nodeValue.length;
+                if (pos.dir != '<-')
+                    pos.end += el.nodeValue.length;
             }
-          })(e),
-          y(e) && !g && (k(), (g = !0))),
-        p &&
-          !(function (t) {
-            return O(t) && "C" === S(t);
-          })(e) &&
-          E(C()));
-    }),
-    T("keyup", t => {
-      t.defaultPrevented || t.isComposing || (a !== B() && h(), N(t), f(B()));
-    }),
-    T("focus", t => {
-      l = !0;
-    }),
-    T("blur", t => {
-      l = !1;
-    }),
-    T("paste", e => {
-      k(),
-        (function (e) {
-          if (e.defaultPrevented) return;
-          H(e);
-          const n = e.originalEvent ?? e,
-            o = n.clipboardData.getData("text/plain").replace(/\r\n?/g, "\n"),
-            r = C();
-          L(o),
-            u(t),
-            E({
-              start: Math.min(r.start, r.end) + o.length,
-              end: Math.min(r.start, r.end) + o.length,
-              dir: "<-",
-            });
-        })(e),
-        k(),
-        f(B());
-    }),
-    T("cut", e => {
-      k(),
-        (function (e) {
-          const n = C(),
-            o = K(),
-            r = e.originalEvent ?? e;
-          r.clipboardData.setData("text/plain", o.toString()),
-            i.execCommand("delete"),
-            u(t),
-            E({
-              start: Math.min(n.start, n.end),
-              end: Math.min(n.start, n.end),
-              dir: "<-",
-            }),
-            H(e);
-        })(e),
-        k(),
-        f(B());
-    }),
-    {
-      updateOptions(t) {
-        Object.assign(o, t);
-      },
-      updateCode(e) {
-        (t.textContent = e), u(t), f(e);
-      },
-      onUpdate(t) {
-        f = t;
-      },
-      toString: B,
-      save: C,
-      restore: E,
-      recordHistory: k,
-      destroy() {
-        for (let [e, n] of s) t.removeEventListener(e, n);
-      },
+        });
+        editor.normalize(); // collapse empty text nodes
+        return pos;
     }
-  );
+    function restore(pos) {
+        const s = getSelection();
+        let startNode, startOffset = 0;
+        let endNode, endOffset = 0;
+        if (!pos.dir)
+            pos.dir = '->';
+        if (pos.start < 0)
+            pos.start = 0;
+        if (pos.end < 0)
+            pos.end = 0;
+        // Flip start and end if the direction reversed
+        if (pos.dir == '<-') {
+            const { start, end } = pos;
+            pos.start = end;
+            pos.end = start;
+        }
+        let current = 0;
+        visit(editor, el => {
+            if (el.nodeType !== Node.TEXT_NODE)
+                return;
+            const len = (el.nodeValue || '').length;
+            if (current + len > pos.start) {
+                if (!startNode) {
+                    startNode = el;
+                    startOffset = pos.start - current;
+                }
+                if (current + len > pos.end) {
+                    endNode = el;
+                    endOffset = pos.end - current;
+                    return 'stop';
+                }
+            }
+            current += len;
+        });
+        if (!startNode)
+            startNode = editor, startOffset = editor.childNodes.length;
+        if (!endNode)
+            endNode = editor, endOffset = editor.childNodes.length;
+        // Flip back the selection
+        if (pos.dir == '<-') {
+            [startNode, startOffset, endNode, endOffset] = [endNode, endOffset, startNode, startOffset];
+        }
+        {
+            // If nodes not editable, create a text node.
+            const startEl = uneditable(startNode);
+            if (startEl) {
+                const node = document.createTextNode('');
+                startEl.parentNode?.insertBefore(node, startEl);
+                startNode = node;
+                startOffset = 0;
+            }
+            const endEl = uneditable(endNode);
+            if (endEl) {
+                const node = document.createTextNode('');
+                endEl.parentNode?.insertBefore(node, endEl);
+                endNode = node;
+                endOffset = 0;
+            }
+        }
+        s.setBaseAndExtent(startNode, startOffset, endNode, endOffset);
+        editor.normalize(); // collapse empty text nodes
+    }
+    function uneditable(node) {
+        while (node && node !== editor) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const el = node;
+                if (el.getAttribute('contenteditable') == 'false') {
+                    return el;
+                }
+            }
+            node = node.parentNode;
+        }
+    }
+    function beforeCursor() {
+        const s = getSelection();
+        const r0 = s.getRangeAt(0);
+        const r = document.createRange();
+        r.selectNodeContents(editor);
+        r.setEnd(r0.startContainer, r0.startOffset);
+        return r.toString();
+    }
+    function afterCursor() {
+        const s = getSelection();
+        const r0 = s.getRangeAt(0);
+        const r = document.createRange();
+        r.selectNodeContents(editor);
+        r.setStart(r0.endContainer, r0.endOffset);
+        return r.toString();
+    }
+    function handleNewLine(event) {
+        if (event.key === 'Enter') {
+            const before = beforeCursor();
+            const after = afterCursor();
+            let [padding] = findPadding(before);
+            let newLinePadding = padding;
+            // If last symbol is "{" ident new line
+            if (options.indentOn.test(before)) {
+                newLinePadding += options.tab;
+            }
+            // Preserve padding
+            if (newLinePadding.length > 0) {
+                preventDefault(event);
+                event.stopPropagation();
+                insert('\n' + newLinePadding);
+            }
+            else {
+                legacyNewLineFix(event);
+            }
+            // Place adjacent "}" on next line
+            if (newLinePadding !== padding && options.moveToNewLine.test(after)) {
+                const pos = save();
+                insert('\n' + padding);
+                restore(pos);
+            }
+        }
+    }
+    function legacyNewLineFix(event) {
+        // Firefox does not support plaintext-only mode
+        // and puts <div><br></div> on Enter. Let's help.
+        if (isLegacy && event.key === 'Enter') {
+            preventDefault(event);
+            event.stopPropagation();
+            if (afterCursor() == '') {
+                insert('\n ');
+                const pos = save();
+                pos.start = --pos.end;
+                restore(pos);
+            }
+            else {
+                insert('\n');
+            }
+        }
+    }
+    function handleSelfClosingCharacters(event) {
+        const open = `([{'"`;
+        const close = `)]}'"`;
+        if (open.includes(event.key)) {
+            preventDefault(event);
+            const pos = save();
+            const wrapText = pos.start == pos.end ? '' : getSelection().toString();
+            const text = event.key + wrapText + close[open.indexOf(event.key)];
+            insert(text);
+            pos.start++;
+            pos.end++;
+            restore(pos);
+        }
+    }
+    function handleTabCharacters(event) {
+        if (event.key === 'Tab') {
+            preventDefault(event);
+            if (event.shiftKey) {
+                const before = beforeCursor();
+                let [padding, start] = findPadding(before);
+                if (padding.length > 0) {
+                    const pos = save();
+                    // Remove full length tab or just remaining padding
+                    const len = Math.min(options.tab.length, padding.length);
+                    restore({ start, end: start + len });
+                    document.execCommand('delete');
+                    pos.start -= len;
+                    pos.end -= len;
+                    restore(pos);
+                }
+            }
+            else {
+                insert(options.tab);
+            }
+        }
+    }
+    function handleUndoRedo(event) {
+        if (isUndo(event)) {
+            preventDefault(event);
+            at--;
+            const record = history[at];
+            if (record) {
+                editor.innerHTML = record.html;
+                restore(record.pos);
+            }
+            if (at < 0)
+                at = 0;
+        }
+        if (isRedo(event)) {
+            preventDefault(event);
+            at++;
+            const record = history[at];
+            if (record) {
+                editor.innerHTML = record.html;
+                restore(record.pos);
+            }
+            if (at >= history.length)
+                at--;
+        }
+    }
+    function recordHistory() {
+        if (!focus)
+            return;
+        const html = editor.innerHTML;
+        const pos = save();
+        const lastRecord = history[at];
+        if (lastRecord) {
+            if (lastRecord.html === html
+                && lastRecord.pos.start === pos.start
+                && lastRecord.pos.end === pos.end)
+                return;
+        }
+        at++;
+        history[at] = { html, pos };
+        history.splice(at + 1);
+        const maxHistory = 300;
+        if (at > maxHistory) {
+            at = maxHistory;
+            history.splice(0, 1);
+        }
+    }
+    function handlePaste(event) {
+        if (event.defaultPrevented)
+            return;
+        preventDefault(event);
+        const originalEvent = event.originalEvent ?? event;
+        const text = originalEvent.clipboardData.getData('text/plain').replace(/\r\n?/g, '\n');
+        const pos = save();
+        insert(text);
+        doHighlight(editor);
+        restore({
+            start: Math.min(pos.start, pos.end) + text.length,
+            end: Math.min(pos.start, pos.end) + text.length,
+            dir: '<-',
+        });
+    }
+    function handleCut(event) {
+        const pos = save();
+        const selection = getSelection();
+        const originalEvent = event.originalEvent ?? event;
+        originalEvent.clipboardData.setData('text/plain', selection.toString());
+        document.execCommand('delete');
+        doHighlight(editor);
+        restore({
+            start: Math.min(pos.start, pos.end),
+            end: Math.min(pos.start, pos.end),
+            dir: '<-',
+        });
+        preventDefault(event);
+    }
+    function visit(editor, visitor) {
+        const queue = [];
+        if (editor.firstChild)
+            queue.push(editor.firstChild);
+        let el = queue.pop();
+        while (el) {
+            if (visitor(el) === 'stop')
+                break;
+            if (el.nextSibling)
+                queue.push(el.nextSibling);
+            if (el.firstChild)
+                queue.push(el.firstChild);
+            el = queue.pop();
+        }
+    }
+    function isCtrl(event) {
+        return event.metaKey || event.ctrlKey;
+    }
+    function isUndo(event) {
+        return isCtrl(event) && !event.shiftKey && getKeyCode(event) === 'Z';
+    }
+    function isRedo(event) {
+        return isCtrl(event) && event.shiftKey && getKeyCode(event) === 'Z';
+    }
+    function isCopy(event) {
+        return isCtrl(event) && getKeyCode(event) === 'C';
+    }
+    function getKeyCode(event) {
+        let key = event.key || event.keyCode || event.which;
+        if (!key)
+            return undefined;
+        return (typeof key === 'string' ? key : String.fromCharCode(key)).toUpperCase();
+    }
+    function insert(text) {
+        text = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+        document.execCommand('insertHTML', false, text);
+    }
+    function debounce(cb, wait) {
+        let timeout = 0;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = window.setTimeout(() => cb(...args), wait);
+        };
+    }
+    function findPadding(text) {
+        // Find beginning of previous line.
+        let i = text.length - 1;
+        while (i >= 0 && text[i] !== '\n')
+            i--;
+        i++;
+        // Find padding of the line.
+        let j = i;
+        while (j < text.length && /[ \t]/.test(text[j]))
+            j++;
+        return [text.substring(i, j) || '', i, j];
+    }
+    function toString() {
+        return editor.textContent || '';
+    }
+    function preventDefault(event) {
+        event.preventDefault();
+    }
+    function getSelection() {
+        if (editor.parentNode?.nodeType == Node.DOCUMENT_FRAGMENT_NODE) {
+            return editor.parentNode.getSelection();
+        }
+        return window.getSelection();
+    }
+    return {
+        updateOptions(newOptions) {
+            Object.assign(options, newOptions);
+        },
+        updateCode(code) {
+            editor.textContent = code;
+            doHighlight(editor);
+            onUpdate(code);
+        },
+        onUpdate(callback) {
+            onUpdate = callback;
+        },
+        toString,
+        save,
+        restore,
+        recordHistory,
+        destroy() {
+            for (let [type, fn] of listeners) {
+                editor.removeEventListener(type, fn);
+            }
+        },
+    };
 }
