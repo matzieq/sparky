@@ -578,7 +578,7 @@ sparky.init = function (config) {
 
   window.addEventListener("resize", () => this._fitToScreen());
   window.addEventListener("keydown", (e) => this._onKeyPressed(e));
-  window.addEventListener("keyup", (e) => this._onKeyReleased(e));
+  window.addEventListener("keyup", (e) => sparky._onKeyReleased(e));
 
   window.requestAnimationFrame((t) => this._step(t));
 
@@ -592,6 +592,11 @@ sparky.init = function (config) {
 };
 
 sparky.getMovingYouInfernalMachine = sparky.init;
+sparky._terminate = function () {
+  window.removeEventListener("resize", sparky._fitToScreen);
+  window.removeEventListener("keydown", sparky._onKeyPressed);
+  window.addEventListener("keyup", sparky._onKeyReleased);
+};
 
 sparky._fitToScreen = function () {
   if (this._isEmbedded) {
@@ -641,6 +646,76 @@ sparky._initMobileControls = function () {
     `;
     this._parentElem.appendChild(mobileControlsWrapper);
   }
+
+  const mobileControls = document.querySelectorAll(".control");
+  this._mobileControls = mobileControls;
+
+  mobileControls.forEach((ctrl) => {
+    ctrl.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.target.className.includes("left")) {
+        this._keys.left.pressed = true;
+        this._keys.left.justPressed = true;
+      }
+      if (e.target.className.includes("right")) {
+        this._keys.right.pressed = true;
+        this._keys.right.justPressed = true;
+      }
+      if (e.target.className.includes("up")) {
+        this._keys.up.pressed = true;
+        this._keys.up.justPressed = true;
+      }
+      if (e.target.className.includes("down")) {
+        this._keys.down.pressed = true;
+        this._keys.down.justPressed = true;
+      }
+      if (e.target.className.includes("select")) {
+        this._keys.select.pressed = true;
+        this._keys.select.justPressed = true;
+      }
+      if (e.target.className.includes("start")) {
+        this._keys.start.pressed = true;
+        this._keys.start.justPressed = true;
+      }
+      if (e.target.className.includes("control-a")) {
+        this._keys.a.pressed = true;
+        this._keys.a.justPressed = true;
+      }
+      if (e.target.className.includes("control-b")) {
+        this._keys.b.pressed = true;
+        this._keys.b.justPressed = true;
+      }
+    });
+    ctrl.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.target.className.includes("left")) {
+        this._keys.left.pressed = false;
+      }
+      if (e.target.className.includes("right")) {
+        this._keys.right.pressed = false;
+      }
+      if (e.target.className.includes("up")) {
+        this._keys.up.pressed = false;
+      }
+      if (e.target.className.includes("down")) {
+        this._keys.down.pressed = false;
+      }
+      if (e.target.className.includes("select")) {
+        this._keys.select.pressed = false;
+      }
+      if (e.target.className.includes("start")) {
+        this._keys.start.pressed = false;
+      }
+      if (e.target.className.includes("a")) {
+        this._keys.a.pressed = false;
+      }
+      if (e.target.className.includes("b")) {
+        this._keys.b.pressed = false;
+      }
+    });
+  });
 };
 
 sparky._step = function (timestamp) {
