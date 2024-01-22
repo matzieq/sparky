@@ -14,11 +14,13 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="prism.css" />
     <link rel="stylesheet" href="codejar-linenumbers.css" />
-
   </head>
+
   <body>
     <header class="header">
-      <a href="/sparky"><h1>Sparky</h1></a>
+      <a href="/sparky">
+        <h1>Sparky</h1>
+      </a>
       <nav class="navbar">
         <ul>
           <li><a href="/sparky/editor">Editor</a></li>
@@ -32,26 +34,37 @@
       <section class="controls">
         <ul class="btn-group project-buttons">
           <li>
-            <button class="btn btn-file clear-button">New</button>
+            <button class="btn btn-file clear-button">
+              Erase & create new
+            </button>
           </li>
           <li>
-            <label for="import-data-file" class="btn btn-file">Open</label>
+            <label for="import-data-file" class="btn btn-file"
+              >Open data file</label
+            >
             <input type="file" id="import-data-file" value="LOAD" />
           </li>
           <li>
-            <button class="btn btn-file download-button">Save</button>
+            <button class="btn btn-file download-button">Save data file</button>
           </li>
           <li>
-            <label for="import-game-file" class="btn btn-file ">Import</label>
-            <input type="file" id="import-game-file" value="LOAD" class="import-button" />
+            <label for="import-game-file" class="btn btn-file"
+              >Import game</label
+            >
+            <input
+              type="file"
+              id="import-game-file"
+              value="LOAD"
+              class="import-button"
+            />
           </li>
           <li>
-            <button class="btn btn-file export-button">Export</button>
+            <button class="btn btn-file export-button">Export game</button>
           </li>
           <li>
             <button class="btn btn-file btn-active download-button">
               <a href="/sparky/sparky-lib/sparky-template.zip"
-                >Get template</a
+                >Download template</a
               >
             </button>
           </li>
@@ -71,7 +84,9 @@
             </button>
           </li>
           <li>
-            <button class="btn control-button" data-activate="SFX">sound</button>
+            <button class="btn control-button" data-activate="SFX">
+              sound
+            </button>
           </li>
           <li>
             <button class="btn control-button" data-activate="GAME">
@@ -79,7 +94,6 @@
             </button>
           </li>
         </ul>
-
       </section>
 
       <section id="SPRITE" class="sprite-edit section section-active">
@@ -404,8 +418,12 @@
           </div>
           <div class="board-wrapper">
             <div class="btn-group centered">
-              <button class="btn control-btn btn-small run-game">&#9658;</button>
-              <button class="btn control-btn btn-small stop-game">&#x23f9;</button>
+              <button class="btn control-btn btn-small run-game">
+                &#9658;
+              </button>
+              <button class="btn control-btn btn-small stop-game">
+                &#x23f9;
+              </button>
             </div>
             <div class="board"></div>
           </div>
@@ -422,7 +440,6 @@
           </div>
         </div>
       </div>
-     
     </main>
     <script src="src/downloadComponents.js"></script>
     <script src="../sparky-lib/sparky.js"></script>
