@@ -1,6 +1,15 @@
 # Sparky
 
-Sparky is a tiny library and asset editor for equally tiny games. In the current version you can edit sprites, tilemaps and sound effects, export them as a data file, and develop games using the (incomplete) library. The software is free and open source, provided under the MIT license, which means you can do pretty much whatever you want with it, provided that you attach to it a copy of the license and copyright notice.
+Sparky is a tiny library and editor for equally tiny games. Make games entirely in the browser, export them as single html file and publish or share however you like. Any game created with Sparky can also be imported into the editor from the html file, so you can read the code and study them, or modify and hack them. The software is free and open source, provided under the MIT license, which means you can do pretty much whatever you want with it, provided that you attach to it a copy of the license and copyright notice.
+
+## Features
+- Fixed resolution, color palette, tile size etc., so that you can get all that out of your mind and just make the game
+- Editors for sprites, maps, sound effects and code
+- Constraints to fuel creativity. You get 256 sprites, tilemap with 8x8 screens, 32 sound effects and 8 tabs to organize your code
+- The library mimics the pico-8 API to make things easier
+- It's just javascript. You can use Math, array methods, async/await, you can even import additional libraries if you want (requires setting up a local development environment)
+- Handcrafted in vanilla javascript, with just two microlibraries to handle the code editor. No need for complex build tools. If you want to run it on your computer - get the code and double click the editor HTML file. That's it.
+- Games exported as single HTML files with no special requirements to run them - just double click and open in any browser.
 
 ## Roadmap
 
@@ -13,6 +22,9 @@ Sparky is a tiny library and asset editor for equally tiny games. In the current
 - <s>Main website for the project</s>
 - <s>Initial pass on a code editor</s>
 - <s>Export game as a single html file</s>
+- <s>Import game from a single html file</s>
+- <s>Add a much needed noise FX to the sound generator</s>
+- Add a field to enter game title
 - Tutorial
 - Sample games
 - Some kind of music tracker
