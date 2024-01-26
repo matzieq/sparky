@@ -749,15 +749,15 @@ sparky._readGamepadState = function () {
   const horiz = 0;
   const vert = 1;
 
-  const isUp = gp.buttons[up].pressed || gp.axes[vert] < -0.5;
-  const isDown = gp.buttons[down].pressed || gp.axes[vert] > 0.5;
-  const isLeft = gp.buttons[left].pressed || gp.axes[horiz] < -0.5;
-  const isRight = gp.buttons[right].pressed || gp.axes[horiz] > 0.5;
+  const isUp = gp.buttons[up]?.pressed || gp.axes[vert] < -0.5;
+  const isDown = gp.buttons[down]?.pressed || gp.axes[vert] > 0.5;
+  const isLeft = gp.buttons[left]?.pressed || gp.axes[horiz] < -0.5;
+  const isRight = gp.buttons[right]?.pressed || gp.axes[horiz] > 0.5;
 
-  const isA = gp.buttons[a].pressed;
-  const isB = gp.buttons[b].pressed;
-  const isSel = gp.buttons[sel].pressed;
-  const isStart = gp.buttons[start].pressed;
+  const isA = gp.buttons[a]?.pressed;
+  const isB = gp.buttons[b]?.pressed;
+  const isSel = gp.buttons[sel]?.pressed;
+  const isStart = gp.buttons[start]?.pressed;
 
   if (isUp) {
     if (!this._keys.up.pressed) {
