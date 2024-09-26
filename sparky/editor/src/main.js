@@ -1102,6 +1102,7 @@ function runGame() {
     try {
       eval(entireCode);
     } catch (err) {
+      document.querySelector('.error-wrapper').innerText = `ERROR: ${err.message}`
       console.log({ err });
     }
   }

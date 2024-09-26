@@ -422,3 +422,8 @@ canvas {
 h1 {
   margin-right: 60px;
 }
+
+.error-wrapper {
+  margin-top: 30px;
+  color: #c69fa5;
+}
