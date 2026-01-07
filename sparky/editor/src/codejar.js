@@ -35,7 +35,10 @@ function CodeJar(editor, highlight, opt = {}) {
   const debounceHighlight = debounce(() => {
     const pos = save();
     doHighlight(editor, pos);
-    restore(pos);
+    // Use requestAnimationFrame to ensure DOM is updated before restoring cursor
+    requestAnimationFrame(() => {
+      restore(pos);
+    });
   }, 30);
   let recording = false;
   const shouldRecord = (event) => {
@@ -219,7 +222,26 @@ function CodeJar(editor, highlight, opt = {}) {
         endOffset = 0;
       }
     }
-    s.setBaseAndExtent(startNode, startOffset, endNode, endOffset);
+    // Use Range API instead of setBaseAndExtent for better Firefox compatibility
+    try {
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+      s.removeAllRanges();
+      s.addRange(range);
+    } catch (e) {
+      // Fallback to setBaseAndExtent if Range API fails
+      try {
+        s.setBaseAndExtent(startNode, startOffset, endNode, endOffset);
+      } catch (e2) {
+        // Last resort: just set cursor at start
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(true);
+        s.removeAllRanges();
+        s.addRange(range);
+      }
+    }
     editor.normalize(); // collapse empty text nodes
   }
   function uneditable(node) {

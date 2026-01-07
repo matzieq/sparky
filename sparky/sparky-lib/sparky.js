@@ -722,6 +722,7 @@ sparky._step = function (timestamp) {
   } catch (err) {
     console.error(err);
     window.cancelAnimationFrame(this._frameRequestId);
+    throw (err);
   }
 };
 

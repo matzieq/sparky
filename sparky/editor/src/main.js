@@ -65,8 +65,8 @@ const modal = {
   },
 };
 
-modal.onOkcayClick = function () {};
-modal.onCancelClick = function () {};
+modal.onOkcayClick = function () { };
+modal.onCancelClick = function () { };
 
 //#region selectors
 /**
@@ -86,7 +86,8 @@ const spritePageSelectButtons = document.querySelectorAll(".page-button");
 /**
  * SPRITE EDIT STUFF
  */
-const cells = document.querySelectorAll(".draw-grid-cell");
+const spriteDrawingCanvas = document.querySelector(".draw-grid");
+const spriteDrawingCtx = spriteDrawingCanvas.getContext("2d");
 const colorButtons = document.querySelectorAll(".color-button");
 const currentColor = document.querySelector(".current-color");
 const spritePreview = document.querySelector(".sprite-preview");
@@ -138,16 +139,36 @@ const gameCodeTabs = document.querySelectorAll(".editor-tab");
 const gameCodeTabTooltips = document.querySelectorAll(".editor-tab .tooltip");
 const runGameButton = document.querySelector(".btn.run-game");
 const stopGameButton = document.querySelector(".btn.stop-game");
+const errorWrapper = document.querySelector(".error-wrapper");
 
-const highlight = (editor) => {
-  editor.innerHTML = Prism.highlight(
-    editor.textContent ?? "",
-    Prism.languages.javascript,
-    "javascript"
-  );
-};
+// Initialize Ace Editor
+let aceEditor;
+function initAceEditor() {
+  const editorElement = document.querySelector(".editor");
+  aceEditor = ace.edit(editorElement);
+  aceEditor.setTheme("ace/theme/monokai");
+  aceEditor.session.setMode("ace/mode/javascript");
+  aceEditor.setOptions({
+    fontSize: 14,
+    showPrintMargin: false,
+    wrap: true,
+    useWorker: false, // Disable worker for better compatibility and to avoid CORS issues
+    enableBasicAutocompletion: false,
+    enableLiveAutocompletion: false,
+    showLineNumbers: true,
+    tabSize: 2,
+    useSoftTabs: true,
+  });
 
-const jar = CodeJar(document.querySelector(".editor"), highlight);
+  // Handle code changes
+  aceEditor.on("change", () => {
+    const code = aceEditor.getValue();
+    previewGame(code);
+    saveCode();
+  });
+
+  return aceEditor;
+}
 
 //#endregion
 
@@ -169,6 +190,7 @@ function getMovingYouInfernalMachine() {
   mapSpritePreviewCtx.scale(5, 5);
   mapDrawingSurfaceCtx.scale(4, 4);
   mapPreviewCtx.scale(4, 4);
+  spriteDrawingCtx.scale(40, 40); // Scale to 40px per pixel (8x8 grid = 320x320 canvas)
 
   attachControlListeners();
   attachSpriteEditListeners();
@@ -178,8 +200,9 @@ function getMovingYouInfernalMachine() {
   document.addEventListener("mousedown", (e) => {
     appEditState.isDrawing = true;
 
-    if (Array.from(cells).indexOf(e.target) >= 0) {
-      enableDrawing(e.target);
+    if (e.target === spriteDrawingCanvas) {
+      const mousePos = getMousePos(e, spriteDrawingCanvas);
+      enableDrawingOnCanvas(mousePos);
     }
 
     if (e.target.classList.contains("map-drawing-surface")) {
@@ -199,18 +222,22 @@ function getMovingYouInfernalMachine() {
 
   const appData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_APP_STATE_KEY));
 
+  // Initialize Ace Editor
+  aceEditor = initAceEditor();
+
   if (localStorage.getItem(LOCAL_STORAGE_CODE_KEY)) {
     const gameCode = JSON.parse(localStorage.getItem(LOCAL_STORAGE_CODE_KEY));
 
     appEditState.codeContents = gameCode;
 
     if (gameCode[0]) {
-      jar.updateCode(gameCode[0]);
+      aceEditor.setValue(gameCode[0] || "", -1);
     }
     try {
       previewGame(gameCode.join("\n"));
     } catch (err) {
-      console.log({ err });
+      displayError(err, gameCode.join("\n"));
+      console.error({ err });
     }
   }
 
@@ -218,7 +245,6 @@ function getMovingYouInfernalMachine() {
     appDataState = appData;
   }
 
-  jar.onUpdate(previewGame);
   initDrawingSurfaces();
 }
 
@@ -294,7 +320,7 @@ function importGame() {
             });
 
             if (gameCode[0]) {
-              jar.updateCode(gameCode[0]);
+              aceEditor.setValue(gameCode[0] || "", -1);
             }
             localStorage.setItem(
               LOCAL_STORAGE_CODE_KEY,
@@ -398,6 +424,9 @@ function attachControlListeners() {
   gameCodeTabs.forEach((btn) => {
     btn.addEventListener("click", (e) => {
       if (e.target.dataset.tab) {
+        // Save current tab content
+        appEditState.codeContents[appEditState.activeCodeTab] = aceEditor.getValue();
+
         appEditState.activeCodeTab = parseInt(e.target.dataset.tab);
       }
 
@@ -409,7 +438,12 @@ function attachControlListeners() {
         }
       });
 
-      jar.updateCode(appEditState.codeContents[appEditState.activeCodeTab]);
+      // Load new tab content
+      const tabContent = appEditState.codeContents[appEditState.activeCodeTab] || "";
+      aceEditor.setValue(tabContent, -1);
+
+      // Validate code when switching tabs
+      previewGame(tabContent);
     });
   });
 
@@ -482,9 +516,12 @@ function deflatten(arr, chunk) {
 }
 
 function attachSpriteEditListeners() {
-  cells.forEach((cell) =>
-    cell.addEventListener("mouseover", () => enableDrawing(cell))
-  );
+  spriteDrawingCanvas.addEventListener("mousemove", (e) => {
+    if (appEditState.isDrawing) {
+      const mousePos = getMousePos(e, spriteDrawingCanvas);
+      enableDrawingOnCanvas(mousePos);
+    }
+  });
 
   colorButtons.forEach((button, i) =>
     button.addEventListener("click", (e) => {
@@ -600,12 +637,17 @@ function changeSelectedSprite(newSprite) {
   updateDrawingSurface(newSprite);
 }
 
-function enableDrawing(cell) {
+function enableDrawingOnCanvas(mousePos) {
   const { isDrawing, drawingMode, selectedColor, selectedImage } = appEditState;
   if (isDrawing) {
-    const cellNumber = Array.from(cells).indexOf(cell);
-    const x = cellNumber % 8;
-    const y = Math.floor(cellNumber / 8);
+    // Convert canvas coordinates to sprite pixel coordinates (0-7)
+    const x = Math.floor(mousePos.x / 40);
+    const y = Math.floor(mousePos.y / 40);
+
+    // Clamp to valid range
+    if (x < 0 || x >= 8 || y < 0 || y >= 8) {
+      return;
+    }
 
     const sprite = getSelectedSprite();
 
@@ -652,11 +694,18 @@ function fillPalette() {
 function updateDrawingSurface(spriteIndex) {
   const sprite = appDataState.sprites[spriteIndex];
 
-  const pixels = sprite.flat(2);
+  // Clear canvas
+  spriteDrawingCtx.clearRect(0, 0, 8, 8);
 
-  cells.forEach((cell, index) => {
-    cell.style.backgroundColor = palette[pixels[index]];
-  });
+  // Draw sprite pixels
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      const colorIndex = sprite[y][x];
+      spriteDrawingCtx.fillStyle = palette[colorIndex];
+      spriteDrawingCtx.fillRect(x, y, 1, 1);
+    }
+  }
+
 
   checkboxes.forEach((checkbox) => {
     const flagNumber = parseInt(checkbox.dataset.flag);
@@ -1069,11 +1118,113 @@ function parseGameData() {
   };
 }
 
+function displayError(error, code) {
+  if (!errorWrapper) return;
+
+  let errorMessage = error.message || String(error);
+  let lineNumber = null;
+
+  // Try to extract line number from error message
+  const lineMatch = errorMessage.match(/line (\d+)/i) ||
+    errorMessage.match(/at line (\d+)/i) ||
+    error.stack?.match(/eval.*:(\d+):(\d+)/);
+
+  if (lineMatch) {
+    lineNumber = parseInt(lineMatch[1]);
+  } else if (error.stack) {
+    // Try to parse stack trace for line numbers
+    const stackMatch = error.stack.match(/:(\d+):(\d+)/);
+    if (stackMatch) {
+      lineNumber = parseInt(stackMatch[1]);
+    }
+  }
+
+  // Format error message
+  let formattedError = `<div class="error-message">`;
+  formattedError += `<strong>Error:</strong> ${errorMessage}`;
+  if (lineNumber && code) {
+    const lines = code.split('\n');
+    if (lineNumber <= lines.length) {
+      formattedError += `<br><span class="error-line">Line ${lineNumber}: ${lines[lineNumber - 1].trim()}</span>`;
+    }
+  }
+  formattedError += `</div>`;
+
+  errorWrapper.innerHTML = formattedError;
+  errorWrapper.style.display = 'block';
+}
+
+function clearError() {
+  if (errorWrapper) {
+    errorWrapper.innerHTML = '';
+    errorWrapper.style.display = 'none';
+  }
+}
+
+function validateSyntax(code) {
+  if (!code || code.trim() === '') {
+    return null;
+  }
+
+  try {
+    // Use Function constructor to check syntax without executing
+    // This catches most syntax errors
+    new Function(code);
+
+    // Also try to parse with eval in a safe way to catch more errors
+    // We wrap it in a try-catch that won't execute
+    try {
+      // Create a test environment
+      const testCode = `(function() { ${code} })`;
+      new Function(testCode);
+    } catch (parseError) {
+      // If it's a syntax error (not a runtime error), return it
+      if (parseError instanceof SyntaxError) {
+        return parseError;
+      }
+      console.log(parseError)
+    }
+
+    return null;
+  } catch (error) {
+    // Return syntax errors
+    if (error instanceof SyntaxError) {
+      return error;
+    }
+    // For other errors, return null (might be runtime errors we can't catch statically)
+    return null;
+  }
+}
+
+function saveCode() {
+  if (!aceEditor) return;
+  const code = appEditState.codeContents;
+  const tab = appEditState.activeCodeTab;
+  code[tab] = aceEditor.getValue();
+  localStorage.setItem(LOCAL_STORAGE_CODE_KEY, JSON.stringify(code));
+}
+
 function previewGame(codeTab) {
   const code = appEditState.codeContents;
   const tab = appEditState.activeCodeTab;
-  code[tab] = codeTab;
-  localStorage.setItem(LOCAL_STORAGE_CODE_KEY, JSON.stringify(code));
+  // Don't update from codeTab parameter if we have aceEditor (it manages its own state)
+  if (!aceEditor) {
+    code[tab] = codeTab;
+    localStorage.setItem(LOCAL_STORAGE_CODE_KEY, JSON.stringify(code));
+  } else {
+    // Save current editor content
+    saveCode();
+  }
+
+  // Validate syntax and display errors
+  const fullCode = code.join("///->\n");
+  const syntaxError = validateSyntax(fullCode);
+
+  if (syntaxError) {
+    displayError(syntaxError, fullCode);
+  } else {
+    clearError();
+  }
 
   if (code) {
     code.forEach((tab, index) => {
@@ -1099,11 +1250,47 @@ function runGame() {
 
   if (code) {
     const entireCode = code.join("///->\n");
+
+    // First check for syntax errors
+    const syntaxError = validateSyntax(entireCode);
+    if (syntaxError) {
+      displayError(syntaxError, entireCode);
+      runGameButton.classList.add("btn-active");
+      return;
+    }
+
+    // Clear any previous errors if syntax is valid
+    console.log({ syntaxError })
+    clearError();
+    console.log("Whatever")
     try {
+      console.log("Trying")
+      // Wrap eval in try-catch to catch runtime errors
       eval(entireCode);
+
+      // Hook into sparky's error handling to catch runtime errors during game loop
+      const originalStep = window.sparky._step;
+      console.log("Still trying")
+      window.sparky._step = function (timestamp) {
+        try {
+          console.log("Trying insied")
+          // debugger;
+          return originalStep.call(this, timestamp);
+          console.log("RUnning")
+        } catch (err) {
+          console.log("Lupa", { err })
+          // Display runtime errors that occur during game execution
+          displayError(err, entireCode);
+          console.error('Runtime error during game execution:', err);
+          window.cancelAnimationFrame(this._frameRequestId);
+          runGameButton.classList.remove("btn-active");
+        }
+      };
+      console.log("tried")
     } catch (err) {
-      document.querySelector('.error-wrapper').innerText = `ERROR: ${err.message}`
-      console.log({ err });
+      displayError(err, entireCode);
+      console.log("Pupa")
+      console.error({ err });
     }
   }
 
@@ -1116,6 +1303,8 @@ function stopGame() {
   window.sparky._data = [];
   window.sparky.init();
   runGameButton.classList.remove("btn-active");
+  // Clear errors when stopping game
+  clearError();
 }
 
 function stringifyGameData() {

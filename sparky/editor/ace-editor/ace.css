@@ -1,0 +1,68 @@
+/* Minimal Ace Editor CSS */
+.ace_editor {
+  font-family: monospace;
+  font-size: 14px;
+  position: relative;
+}
+
+.ace_gutter {
+  background: #272744;
+  color: #8b6d9c;
+  border-right: 1px solid #494d7e;
+}
+
+.ace_gutter-layer {
+  width: 50px !important;
+}
+
+.ace_gutter-cell {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.ace_scroller {
+  background: #272744;
+  color: #fbf5ef;
+}
+
+.ace_content {
+  background: #272744;
+}
+
+.ace_cursor {
+  border-left: 2px solid #fbf5ef;
+}
+
+.ace_selection {
+  background: #494d7e;
+}
+
+.ace_line {
+  color: #fbf5ef;
+}
+
+/* Syntax highlighting colors matching Sparky theme */
+.ace_keyword {
+  color: #8b6d9c;
+}
+
+.ace_string {
+  color: #f2d3ab;
+}
+
+.ace_number {
+  color: #c69fa5;
+}
+
+.ace_comment {
+  color: #494d7e;
+  font-style: italic;
+}
+
+.ace_variable {
+  color: #fbf5ef;
+}
+
+.ace_function {
+  color: #c69fa5;
+}
