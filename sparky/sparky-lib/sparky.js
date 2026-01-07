@@ -19,7 +19,7 @@ function isSafari() {
   );
 }
 
-var sparky = sparky || {};
+const sparky = (typeof window !== 'undefined' && window.sparky) || {};
 
 sparky._letters = {
   A: [
@@ -462,8 +462,8 @@ sparky.init = function (config) {
     document.body.appendChild(this._sparkycanv);
     this._parentElem = document.body;
   }
-  this._draw = config && config.draw ? config.draw : function () {};
-  this._update = config && config.update ? config.update : function () {};
+  this._draw = config && config.draw ? config.draw : function () { };
+  this._update = config && config.update ? config.update : function () { };
   const style = document.createElement("style");
 
   const controlStyles = `
@@ -729,8 +729,8 @@ sparky._readGamepadState = function () {
   const gamepads = navigator.getGamepads
     ? navigator.getGamepads()
     : navigator.webkitGetGamepads
-    ? navigator.webkitGetGamepads
-    : [];
+      ? navigator.webkitGetGamepads
+      : [];
 
   if (!gamepads || !gamepads[0]) {
     return;
@@ -1222,7 +1222,7 @@ sparky.pset = function (x, y, col = this._drawColor) {
 };
 
 sparky._resetKeys = function () {
-  for (key in this._keys) {
+  for (const key in this._keys) {
     this._keys[key].justPressed = false;
   }
 };
@@ -1391,7 +1391,7 @@ sparky.btnp = function (key) {
 };
 
 sparky._getFrequency = function (dist, octaveDiff = 0) {
-  freq = this._middleC * Math.pow(Math.pow(2, 1 / 12), dist);
+  const freq = this._middleC * Math.pow(Math.pow(2, 1 / 12), dist);
   return freq * Math.pow(2, octaveDiff);
 };
 
@@ -1522,14 +1522,21 @@ sparky._soundEffect = function (
   }
 
   function noise(frequencyNode) {
-    var waveTable = [];
-    var curfreq = 5 * frequency;
-    for (var i = 0; i < timeout; i += 0.001) {
-      waveTable.push(Math.random() * curfreq - curfreq / 3);
+    const waveTable = [];
+    const minFreq = Math.max(20, frequency * 0.1); // Minimum 20 Hz or 10% of base frequency
+    const maxFreq = Math.min(20000, frequency * 10); // Maximum 20 kHz or 10x base frequency
+    const noiseRange = frequency * 0.5; // Noise variation: ±50% of base frequency
+    for (let i = 0; i < timeout; i += 0.001) {
+      // Generate noise value centered around frequency with bounded variation
+      const noiseValue = (Math.random() - 0.5) * 2 * noiseRange; // Range: [-noiseRange, +noiseRange]
+      const noisyFreq = frequency + noiseValue;
+      // Clamp to valid frequency range to prevent audio artifacts
+      const clampedFreq = Math.max(minFreq, Math.min(maxFreq, noisyFreq));
+      waveTable.push(clampedFreq);
     }
 
     frequencyNode.setValueCurveAtTime(
-      waveTable,
+      new Float32Array(waveTable),
       actx.currentTime + wait,
       timeout
     );
@@ -1573,9 +1580,9 @@ sparky.sfx = function (soundIndex) {
       sample.fx,
       sound.samples[i + 1]
         ? this._getFrequency(
-            sound.samples[i + 1].dist,
-            sound.samples[i + 1].oct
-          )
+          sound.samples[i + 1].dist,
+          sound.samples[i + 1].oct
+        )
         : null
     );
     i += repeat - 1;
@@ -1625,9 +1632,9 @@ sparky._chainedSfx = function (sfxList) {
       sample.fx,
       samples[i + 1]
         ? this._getFrequency(
-            sound.samples[i + 1].dist,
-            sound.samples[i + 1].oct
-          )
+          sound.samples[i + 1].dist,
+          sound.samples[i + 1].oct
+        )
         : null
     );
     i += repeat - 1;
